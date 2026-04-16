@@ -1,0 +1,1914 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Local LLM Field Manual</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,300;0,400;0,500;0,600;1,400&family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,500;0,9..144,700;0,9..144,900;1,9..144,400&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0d1117;
+    --bg-raised: #161b22;
+    --bg-soft: #11161d;
+    --ink: #e6edf3;
+    --ink-dim: #8b949e;
+    --ink-faint: #484f58;
+    --rule: #21262d;
+    --rule-strong: #30363d;
+    --gold: #d4a84b;
+    --gold-soft: #8b7330;
+    --copper: #c97b3c;
+    --signal: #7ee787;
+    --warn: #f0b74a;
+    --danger: #ff7b72;
+    --display: "Fraunces", "Times New Roman", serif;
+    --mono: "IBM Plex Mono", "Courier New", monospace;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: var(--mono);
+    font-size: 14px;
+    line-height: 1.6;
+    font-weight: 400;
+    overflow-x: hidden;
+    background-image:
+      radial-gradient(circle at 20% 10%, rgba(212, 168, 75, 0.04) 0%, transparent 40%),
+      radial-gradient(circle at 80% 80%, rgba(201, 123, 60, 0.03) 0%, transparent 40%);
+  }
+
+  body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 1;
+    opacity: 0.035;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+
+  .container {
+    max-width: 1240px;
+    margin: 0 auto;
+    padding: 0 32px;
+    position: relative;
+    z-index: 2;
+  }
+
+  /* ============ HEADER ============ */
+  header {
+    border-bottom: 1px solid var(--rule);
+    padding: 24px 0 18px;
+    position: sticky;
+    top: 0;
+    background: rgba(13, 17, 23, 0.92);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    z-index: 100;
+  }
+
+  .masthead {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 24px;
+    flex-wrap: wrap;
+  }
+
+  .logo {
+    font-family: var(--display);
+    font-weight: 900;
+    font-size: 22px;
+    letter-spacing: -0.01em;
+    color: var(--ink);
+    font-style: italic;
+  }
+
+  .logo span {
+    color: var(--gold);
+    font-style: normal;
+    font-weight: 300;
+  }
+
+  /* Language toggle */
+  .lang-toggle {
+    display: flex;
+    border: 1px solid var(--rule-strong);
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.1em;
+  }
+
+  .lang-btn {
+    background: transparent;
+    border: none;
+    color: var(--ink-dim);
+    padding: 6px 14px;
+    cursor: pointer;
+    font-family: inherit;
+    font-size: inherit;
+    letter-spacing: inherit;
+    text-transform: uppercase;
+    transition: background 0.15s, color 0.15s;
+  }
+
+  .lang-btn:hover {
+    color: var(--ink);
+  }
+
+  .lang-btn.active {
+    background: var(--gold);
+    color: var(--bg);
+    font-weight: 500;
+  }
+
+  /* ============ HERO ============ */
+  .hero {
+    padding: 80px 0 60px;
+    border-bottom: 1px solid var(--rule);
+    position: relative;
+  }
+
+  .hero-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 60px;
+    align-items: end;
+  }
+
+  .eyebrow {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 24px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .eyebrow::before {
+    content: "";
+    width: 24px;
+    height: 1px;
+    background: var(--gold);
+  }
+
+  h1 {
+    font-family: var(--display);
+    font-weight: 300;
+    font-size: clamp(48px, 7vw, 88px);
+    line-height: 0.96;
+    letter-spacing: -0.02em;
+    color: var(--ink);
+    margin-bottom: 32px;
+  }
+
+  h1 em {
+    font-style: italic;
+    font-weight: 900;
+    color: var(--gold);
+  }
+
+  .lede {
+    font-family: var(--display);
+    font-size: 18px;
+    line-height: 1.5;
+    color: var(--ink-dim);
+    font-weight: 400;
+    max-width: 52ch;
+  }
+
+  .spec-card {
+    border: 1px solid var(--rule-strong);
+    padding: 24px;
+    background: var(--bg-soft);
+    position: relative;
+  }
+
+  .spec-card::before {
+    content: attr(data-label);
+    position: absolute;
+    top: -8px;
+    left: 20px;
+    background: var(--bg);
+    padding: 0 8px;
+    font-size: 10px;
+    color: var(--gold);
+    letter-spacing: 0.2em;
+  }
+
+  .spec-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 10px 0;
+    border-bottom: 1px dashed var(--rule);
+    font-size: 12px;
+    gap: 12px;
+  }
+
+  .spec-row:last-child { border-bottom: none; }
+
+  .spec-label {
+    color: var(--ink-dim);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    flex-shrink: 0;
+  }
+
+  .spec-value {
+    color: var(--ink);
+    font-weight: 500;
+    text-align: right;
+  }
+
+  .spec-value.accent { color: var(--gold); }
+
+  /* ============ TOC ============ */
+  .toc {
+    padding: 40px 0;
+    border-bottom: 1px solid var(--rule);
+  }
+
+  .toc-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 0;
+    list-style: none;
+  }
+
+  .toc-item {
+    display: flex;
+    align-items: baseline;
+    gap: 12px;
+    padding: 14px 0;
+    border-top: 1px solid var(--rule);
+    text-decoration: none;
+    color: var(--ink);
+    transition: color 0.2s, padding 0.2s;
+    font-size: 13px;
+  }
+
+  .toc-item:hover {
+    color: var(--gold);
+    padding-left: 8px;
+  }
+
+  .toc-num {
+    color: var(--ink-faint);
+    font-size: 11px;
+  }
+
+  /* ============ SECTIONS ============ */
+  section {
+    padding: 80px 0;
+    border-bottom: 1px solid var(--rule);
+  }
+
+  .section-header {
+    display: grid;
+    grid-template-columns: 120px 1fr;
+    gap: 32px;
+    margin-bottom: 48px;
+    align-items: start;
+  }
+
+  .section-num {
+    font-family: var(--display);
+    font-style: italic;
+    font-weight: 300;
+    font-size: 72px;
+    line-height: 0.9;
+    color: var(--gold);
+  }
+
+  .section-title-block h2 {
+    font-family: var(--display);
+    font-weight: 400;
+    font-size: 44px;
+    line-height: 1.05;
+    letter-spacing: -0.015em;
+    margin-bottom: 16px;
+  }
+
+  .section-title-block h2 em {
+    font-style: italic;
+    color: var(--gold);
+    font-weight: 300;
+  }
+
+  .section-subtitle {
+    font-size: 13px;
+    color: var(--ink-dim);
+    max-width: 60ch;
+    line-height: 1.65;
+  }
+
+  /* ============ RULES ============ */
+  .rules-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0;
+    border: 1px solid var(--rule-strong);
+  }
+
+  .rule {
+    padding: 28px;
+    border-right: 1px solid var(--rule);
+    border-bottom: 1px solid var(--rule);
+    position: relative;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .rule:nth-child(2n) { border-right: none; }
+  .rule:nth-last-child(-n+2) { border-bottom: none; }
+
+  .rule-tag {
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 12px;
+  }
+
+  .rule-title {
+    font-family: var(--display);
+    font-weight: 500;
+    font-size: 22px;
+    line-height: 1.2;
+    margin-bottom: 12px;
+    color: var(--ink);
+  }
+
+  .rule-body {
+    font-size: 13px;
+    line-height: 1.6;
+    color: var(--ink-dim);
+  }
+
+  .rule-formula {
+    margin: 16px 0 0 0;
+    padding: 14px 16px;
+    background: var(--bg-soft);
+    border-left: 2px solid var(--gold);
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--ink);
+    overflow-x: auto;
+    white-space: pre;
+    line-height: 1.7;
+  }
+
+  .rule-formula .comment { color: var(--ink-faint); }
+  .rule-formula .keyword { color: var(--gold); }
+
+  /* ============ ELI5 EXPANDER ============ */
+  .eli {
+    margin-top: 18px;
+    border-top: 1px solid var(--rule);
+    padding-top: 14px;
+  }
+
+  .eli summary {
+    list-style: none;
+    cursor: pointer;
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--ink-dim);
+    padding: 4px 0;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    transition: color 0.15s;
+    user-select: none;
+  }
+
+  .eli summary::-webkit-details-marker { display: none; }
+
+  .eli summary::before {
+    content: "+";
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 16px;
+    height: 16px;
+    border: 1px solid var(--gold-soft);
+    color: var(--gold);
+    font-size: 14px;
+    line-height: 1;
+    font-weight: 400;
+    font-family: var(--mono);
+    transition: transform 0.2s, border-color 0.2s;
+  }
+
+  .eli[open] summary::before {
+    content: "\2212"; /* minus sign */
+    border-color: var(--gold);
+    background: var(--gold);
+    color: var(--bg);
+  }
+
+  .eli summary:hover { color: var(--gold); }
+  .eli summary:hover::before { border-color: var(--gold); }
+
+  .eli-content {
+    padding: 14px 0 4px 26px;
+    font-size: 12px;
+    line-height: 1.7;
+    color: var(--ink-dim);
+    animation: eliFade 0.25s ease-out;
+  }
+
+  .eli-content dt {
+    color: var(--gold);
+    font-family: var(--mono);
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.05em;
+    margin-top: 10px;
+    margin-bottom: 3px;
+  }
+
+  .eli-content dt:first-child { margin-top: 0; }
+
+  .eli-content dd {
+    margin-left: 0;
+    color: var(--ink-dim);
+    font-family: var(--display);
+    font-size: 13px;
+    line-height: 1.55;
+  }
+
+  @keyframes eliFade {
+    from { opacity: 0; transform: translateY(-4px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ============ QUANT TABLE ============ */
+  .quant-intro {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 40px;
+    margin-bottom: 40px;
+    padding: 32px;
+    background: var(--bg-soft);
+    border: 1px solid var(--rule);
+  }
+
+  .quant-intro p {
+    color: var(--ink-dim);
+    font-size: 13px;
+    line-height: 1.7;
+  }
+
+  .quant-intro strong { color: var(--ink); font-weight: 500; }
+  .quant-intro em { color: var(--gold); font-style: normal; }
+
+  .quant-table-wrap { overflow-x: auto; }
+
+  .quant-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+    min-width: 720px;
+  }
+
+  .quant-table th {
+    text-align: left;
+    padding: 16px 20px;
+    background: var(--bg-soft);
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--gold);
+    border-bottom: 2px solid var(--gold-soft);
+    font-weight: 500;
+  }
+
+  .quant-table td {
+    padding: 18px 20px;
+    border-bottom: 1px solid var(--rule);
+    vertical-align: top;
+  }
+
+  .quant-table tr:hover td { background: var(--bg-soft); }
+
+  .quant-name {
+    font-weight: 600;
+    color: var(--ink);
+    font-size: 14px;
+  }
+
+  .quant-tier {
+    display: inline-block;
+    padding: 2px 8px;
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    border: 1px solid;
+    border-radius: 2px;
+    white-space: nowrap;
+  }
+
+  .tier-avoid { color: var(--danger); border-color: var(--danger); }
+  .tier-budget { color: var(--warn); border-color: var(--warn); }
+  .tier-sweet { color: var(--signal); border-color: var(--signal); background: rgba(126, 231, 135, 0.06); }
+  .tier-quality { color: var(--gold); border-color: var(--gold); }
+  .tier-reference { color: var(--ink-dim); border-color: var(--ink-dim); }
+
+  .quality-bar {
+    display: flex;
+    gap: 2px;
+    margin-top: 4px;
+  }
+
+  .quality-bar span {
+    width: 14px;
+    height: 4px;
+    background: var(--rule-strong);
+  }
+
+  .quality-bar span.on { background: var(--gold); }
+
+  /* ============ FORMATS ============ */
+  .formats-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0;
+    border: 1px solid var(--rule-strong);
+  }
+
+  .format-card {
+    padding: 32px 28px;
+    border-right: 1px solid var(--rule);
+    border-bottom: 1px solid var(--rule);
+    position: relative;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .format-card:nth-child(3n) { border-right: none; }
+  .format-card:nth-last-child(-n+3) { border-bottom: none; }
+
+  .format-card.primary {
+    background: linear-gradient(180deg, rgba(212, 168, 75, 0.08) 0%, transparent 100%);
+  }
+
+  .format-badge {
+    display: inline-block;
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    padding: 3px 8px;
+    margin-bottom: 16px;
+    width: fit-content;
+  }
+
+  .badge-primary { background: var(--gold); color: var(--bg); }
+  .badge-alt { background: transparent; color: var(--ink-dim); border: 1px solid var(--rule-strong); }
+  .badge-legacy { background: transparent; color: var(--ink-faint); border: 1px solid var(--rule); }
+
+  .format-name {
+    font-family: var(--display);
+    font-size: 36px;
+    font-weight: 500;
+    letter-spacing: -0.02em;
+    margin-bottom: 4px;
+  }
+
+  .format-expansion {
+    font-size: 11px;
+    color: var(--ink-dim);
+    letter-spacing: 0.08em;
+    margin-bottom: 20px;
+    text-transform: uppercase;
+  }
+
+  .format-desc {
+    font-size: 13px;
+    color: var(--ink-dim);
+    line-height: 1.6;
+    margin-bottom: 20px;
+    flex-grow: 1;
+  }
+
+  .format-attrs {
+    border-top: 1px solid var(--rule);
+    padding-top: 16px;
+  }
+
+  .format-attr {
+    display: flex;
+    justify-content: space-between;
+    padding: 6px 0;
+    font-size: 11px;
+    gap: 8px;
+  }
+
+  .format-attr-key { color: var(--ink-faint); text-transform: uppercase; letter-spacing: 0.08em; flex-shrink: 0; }
+  .format-attr-val { color: var(--ink); text-align: right; }
+
+  /* ============ THROUGHPUT ============ */
+  .throughput-container {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 48px;
+    align-items: start;
+  }
+
+  .speed-scale {
+    background: var(--bg-soft);
+    border: 1px solid var(--rule);
+    padding: 32px;
+  }
+
+  .speed-scale-title {
+    font-family: var(--display);
+    font-size: 20px;
+    margin-bottom: 4px;
+  }
+
+  .speed-scale-sub {
+    font-size: 11px;
+    color: var(--ink-dim);
+    margin-bottom: 28px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+
+  .speed-bar { margin-bottom: 20px; }
+
+  .speed-bar-header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 6px;
+    font-size: 12px;
+  }
+
+  .speed-bar-label { color: var(--ink); font-weight: 500; }
+  .speed-bar-value { color: var(--gold); font-family: var(--mono); }
+
+  .speed-bar-track {
+    height: 4px;
+    background: var(--rule);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .speed-bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--copper), var(--gold));
+  }
+
+  .speed-bar-note {
+    font-size: 11px;
+    color: var(--ink-faint);
+    margin-top: 6px;
+    font-style: italic;
+  }
+
+  .throughput-specs { display: grid; gap: 16px; }
+
+  .hw-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0;
+    border: 1px solid var(--rule);
+  }
+
+  .hw-row > div { padding: 18px 20px; }
+
+  .hw-row > div:first-child {
+    border-right: 1px solid var(--rule);
+    background: var(--bg-soft);
+  }
+
+  .hw-hardware {
+    font-family: var(--display);
+    font-size: 16px;
+    font-weight: 500;
+    margin-bottom: 4px;
+  }
+
+  .hw-spec {
+    font-size: 11px;
+    color: var(--ink-dim);
+    letter-spacing: 0.06em;
+  }
+
+  .hw-perf {
+    font-size: 12px;
+    color: var(--ink-dim);
+    line-height: 1.6;
+  }
+
+  .hw-perf strong {
+    color: var(--gold);
+    font-weight: 500;
+    font-family: var(--mono);
+  }
+
+  .hw-perf em {
+    color: var(--ink-faint);
+    font-style: italic;
+    font-size: 11px;
+  }
+
+  /* ============ TIPS ============ */
+  .tips-intro {
+    font-family: var(--display);
+    font-size: 22px;
+    line-height: 1.4;
+    color: var(--ink-dim);
+    max-width: 68ch;
+    margin-bottom: 48px;
+    font-weight: 400;
+  }
+
+  .tips-intro em { color: var(--gold); font-style: italic; }
+
+  .tips-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 32px;
+  }
+
+  .tip {
+    padding: 28px 0;
+    border-top: 1px solid var(--rule-strong);
+    display: grid;
+    grid-template-columns: 48px 1fr;
+    gap: 20px;
+  }
+
+  .tip-num {
+    font-family: var(--display);
+    font-style: italic;
+    font-size: 36px;
+    font-weight: 300;
+    color: var(--gold);
+    line-height: 1;
+  }
+
+  .tip-title {
+    font-family: var(--display);
+    font-size: 18px;
+    font-weight: 500;
+    margin-bottom: 8px;
+    line-height: 1.3;
+  }
+
+  .tip-body {
+    font-size: 13px;
+    color: var(--ink-dim);
+    line-height: 1.65;
+  }
+
+  .tip-body code,
+  .rule-body code,
+  .quant-intro code,
+  .format-desc code {
+    font-family: var(--mono);
+    background: var(--bg-soft);
+    padding: 1px 6px;
+    color: var(--gold);
+    font-size: 12px;
+    border: 1px solid var(--rule);
+    word-break: break-word;
+    overflow-wrap: anywhere;
+    white-space: normal;
+  }
+
+  /* ============ DECISION BOX ============ */
+  .decision-box {
+    border: 1px solid var(--gold-soft);
+    background: linear-gradient(180deg, rgba(212, 168, 75, 0.04) 0%, rgba(212, 168, 75, 0.01) 100%);
+    padding: 40px;
+    margin-top: 40px;
+  }
+
+  .decision-title {
+    font-family: var(--display);
+    font-style: italic;
+    font-size: 24px;
+    margin-bottom: 4px;
+  }
+
+  .decision-sub {
+    font-size: 11px;
+    color: var(--gold);
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    margin-bottom: 28px;
+  }
+
+  .decision-flow { display: grid; gap: 12px; }
+
+  .decision-step {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 16px;
+    align-items: baseline;
+  }
+
+  .decision-q {
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--gold);
+    white-space: nowrap;
+  }
+
+  .decision-a {
+    font-size: 13px;
+    color: var(--ink);
+    border-bottom: 1px dashed var(--rule);
+    padding-bottom: 10px;
+  }
+
+  .decision-a strong { color: var(--gold); font-weight: 500; }
+
+  /* ============ FOOTER ============ */
+  footer {
+    padding: 60px 0 40px;
+    text-align: center;
+  }
+
+  .footer-mark {
+    font-family: var(--display);
+    font-style: italic;
+    font-size: 28px;
+    color: var(--gold);
+    margin-bottom: 8px;
+  }
+
+  .footer-sub {
+    font-size: 11px;
+    color: var(--ink-faint);
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+  }
+
+  /* ============ ANIMATIONS ============ */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(12px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .hero > * { animation: fadeUp 0.8s ease-out both; }
+  .hero-grid > *:nth-child(1) { animation-delay: 0.1s; }
+  .hero-grid > *:nth-child(2) { animation-delay: 0.25s; }
+
+  /* ============ RESPONSIVE ============ */
+  @media (max-width: 900px) {
+    .container { padding: 0 20px; }
+    .hero-grid, .throughput-container, .quant-intro, .tips-grid { grid-template-columns: 1fr; gap: 32px; }
+    .rules-grid { grid-template-columns: 1fr; }
+    .rule { border-right: none !important; border-bottom: 1px solid var(--rule); }
+    .formats-grid { grid-template-columns: 1fr; }
+    .format-card { border-right: none; border-bottom: 1px solid var(--rule); }
+    .section-header { grid-template-columns: 1fr; gap: 12px; }
+    .section-num { font-size: 48px; }
+    .section-title-block h2 { font-size: 32px; }
+    h1 { font-size: 44px; }
+    .tip { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="container">
+    <div class="masthead">
+      <div class="logo">local<span>/LLM</span> field manual</div>
+      <div class="lang-toggle" role="tablist" aria-label="Language">
+        <button class="lang-btn active" data-lang="en" role="tab">EN</button>
+        <button class="lang-btn" data-lang="pt" role="tab">PT</button>
+      </div>
+    </div>
+  </div>
+</header>
+
+<!-- ============ HERO ============ -->
+<div class="hero">
+  <div class="container">
+    <div class="hero-grid">
+      <div>
+        <div class="eyebrow" data-i18n="eyebrow">A practitioner's cheat sheet</div>
+        <h1 data-i18n-html="h1">Running models <em>on your own iron.</em></h1>
+        <p class="lede" data-i18n="lede">Quantization, context, throughput: the knobs that actually matter when you move an LLM off the cloud and onto your desk. No hand-waving, just the numbers that hold up in practice.</p>
+      </div>
+      <div class="spec-card" data-label="SPECIFICATION" data-i18n-attr="data-label:specLabel">
+        <div class="spec-row"><span class="spec-label" data-i18n="spec1k">Target reader</span><span class="spec-value" data-i18n="spec1v">self-hoster</span></div>
+        <div class="spec-row"><span class="spec-label" data-i18n="spec2k">Stack</span><span class="spec-value accent" data-i18n="spec2v">llama.cpp · Ollama · LM Studio</span></div>
+        <div class="spec-row"><span class="spec-label" data-i18n="spec3k">Formats covered</span><span class="spec-value" data-i18n="spec3v">GGUF · EXL2 · AWQ · GPTQ · MLX</span></div>
+        <div class="spec-row"><span class="spec-label" data-i18n="spec4k">Precision</span><span class="spec-value" data-i18n="spec4v">Q2 to FP16</span></div>
+        <div class="spec-row"><span class="spec-label" data-i18n="spec5k">Bias</span><span class="spec-value accent" data-i18n="spec5v">practical over theoretical</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============ TOC ============ -->
+<nav class="toc">
+  <div class="container">
+    <ul class="toc-list">
+      <a href="#rules" class="toc-item"><span class="toc-num">01</span><span data-i18n="toc1">Rules of thumb</span></a>
+      <a href="#quants" class="toc-item"><span class="toc-num">02</span><span data-i18n="toc2">Quantization ladder</span></a>
+      <a href="#formats" class="toc-item"><span class="toc-num">03</span><span data-i18n="toc3">Formats &amp; containers</span></a>
+      <a href="#throughput" class="toc-item"><span class="toc-num">04</span><span data-i18n="toc4">Throughput vs quality</span></a>
+      <a href="#tips" class="toc-item"><span class="toc-num">05</span><span data-i18n="toc5">Tips &amp; tricks</span></a>
+    </ul>
+  </div>
+</nav>
+
+<!-- ============ SECTION 1: RULES ============ -->
+<section id="rules">
+  <div class="container">
+    <div class="section-header">
+      <div class="section-num">01</div>
+      <div class="section-title-block">
+        <h2 data-i18n-html="s1title">Rules <em>of thumb</em></h2>
+        <p class="section-subtitle" data-i18n="s1sub">The back-of-envelope math that tells you whether a model will load at all, and whether it will run fast enough to be useful. Memorize these before you download a 40 GB file.</p>
+      </div>
+    </div>
+
+    <div class="rules-grid">
+
+      <!-- RULE 1.1 -->
+      <div class="rule">
+        <div class="rule-tag" data-i18n="r1tag">§ 1.1 &nbsp;·&nbsp; VRAM budget</div>
+        <h3 class="rule-title" data-i18n="r1title">Parameters × bytes per weight + overhead</h3>
+        <p class="rule-body" data-i18n="r1body">Multiply the parameter count by the quantization's bytes-per-weight, then add roughly 20 to 25 percent for KV cache and activations. At Q4 (~0.5 B/param), a 7B fits in ~5 GB; at Q8, ~9 GB; at FP16, ~16 GB.</p>
+        <pre class="rule-formula">
+<span class="comment"># VRAM &#8776; params &#215; bpw &#215; 1.2</span>
+<span class="keyword">Q4_K_M</span>  &#8594; params &#215; 0.55 GB
+<span class="keyword">Q6_K</span>    &#8594; params &#215; 0.80 GB
+<span class="keyword">Q8_0</span>    &#8594; params &#215; 1.05 GB
+<span class="keyword">FP16</span>    &#8594; params &#215; 2.00 GB
+        </pre>
+        <details class="eli">
+          <summary data-i18n="eliLabel">Quick glossary</summary>
+          <dl class="eli-content">
+            <dt>VRAM</dt>
+            <dd data-i18n="eli1_vram">Video RAM. The memory physically on your GPU card. The model weights have to fit here or the whole thing spills to slow system memory.</dd>
+            <dt>Parameters</dt>
+            <dd data-i18n="eli1_params">The numbers the model learned during training. A "7B model" has 7 billion of them. More parameters generally means more capability, but also more memory.</dd>
+            <dt>Bytes per weight (bpw)</dt>
+            <dd data-i18n="eli1_bpw">How many bytes each parameter takes up. Full precision uses 2 bytes (FP16); Q4 uses about 0.5 bytes. This is where quantization saves space.</dd>
+            <dt>Overhead</dt>
+            <dd data-i18n="eli1_overhead">Extra memory the model needs while running, on top of the weights themselves. Mostly the KV cache and intermediate activations. Budget 20 to 25 percent.</dd>
+          </dl>
+        </details>
+      </div>
+
+      <!-- RULE 1.2 -->
+      <div class="rule">
+        <div class="rule-tag" data-i18n="r2tag">§ 1.2 &nbsp;·&nbsp; Context window cost</div>
+        <h3 class="rule-title" data-i18n="r2title">KV cache scales with tokens × layers</h3>
+        <p class="rule-body" data-i18n="r2body">Context isn't free. Each token in the window consumes VRAM roughly equal to <code>2 × layers × hidden_dim × bytes</code>. A 32k context on a 13B model eats 3 to 6 GB on top of the weights. Cut context aggressively if you're close to the edge.</p>
+        <pre class="rule-formula">
+<span class="comment"># Rough KV cache for 7B-class models</span>
+<span class="keyword">4k</span>   ctx  &#8594;  ~0.5 GB
+<span class="keyword">8k</span>   ctx  &#8594;  ~1.0 GB
+<span class="keyword">32k</span>  ctx  &#8594;  ~4.0 GB
+<span class="keyword">128k</span> ctx  &#8594;  ~16  GB
+        </pre>
+        <details class="eli">
+          <summary data-i18n="eliLabel">Quick glossary</summary>
+          <dl class="eli-content">
+            <dt>KV cache</dt>
+            <dd data-i18n="eli2_kv">Key/Value cache. The model's short-term memory of the conversation so far. Stored so it doesn't have to re-read the whole prompt on every new token. Grows linearly with context length.</dd>
+            <dt>Token</dt>
+            <dd data-i18n="eli2_token">The unit the model reads and writes. Roughly 3 to 4 characters of English, or 1.5 to 2 characters of Portuguese. "Hello world" is about 2 tokens.</dd>
+            <dt>Context window</dt>
+            <dd data-i18n="eli2_ctx">The maximum number of tokens the model can consider at once, system prompt plus chat history plus new input plus the reply it's generating. Exceed it and the earliest content gets dropped.</dd>
+            <dt>Layers / hidden_dim</dt>
+            <dd data-i18n="eli2_layers">Layers are the stacked blocks that make up the model; hidden_dim is how "wide" each block is. Bigger values mean more KV memory per token.</dd>
+          </dl>
+        </details>
+      </div>
+
+      <!-- RULE 1.3 -->
+      <div class="rule">
+        <div class="rule-tag" data-i18n="r3tag">§ 1.3 &nbsp;·&nbsp; Model size vs task</div>
+        <h3 class="rule-title" data-i18n="r3title">Match parameter count to the job</h3>
+        <p class="rule-body" data-i18n="r3body">3B models are autocomplete-grade; 7 to 8B handle simple chat and structured extraction; 13 to 14B cross the "feels coherent" line; 30 to 34B is where reasoning starts to hold; 70B and up rivals frontier APIs on most tasks except the hardest math and code.</p>
+        <pre class="rule-formula">
+<span class="keyword">&le;3B</span>    classification &middot; autocomplete
+<span class="keyword">7&ndash;8B</span>   chat &middot; RAG &middot; extraction
+<span class="keyword">13&ndash;14B</span> agents &middot; drafting &middot; summary
+<span class="keyword">30&ndash;34B</span> reasoning &middot; long context
+<span class="keyword">70B+</span>   near-frontier quality
+        </pre>
+        <details class="eli">
+          <summary data-i18n="eliLabel">Quick glossary</summary>
+          <dl class="eli-content">
+            <dt>"B" in 7B, 13B, 70B</dt>
+            <dd data-i18n="eli3_B">Billion. "7B" means roughly 7 billion parameters. It's the most common rough proxy for model capability, though architecture and training matter too.</dd>
+            <dt>RAG</dt>
+            <dd data-i18n="eli3_rag">Retrieval-Augmented Generation. You fetch relevant documents (from a vector database, usually) and paste them into the prompt before the model answers. Lets small models reason over large knowledge bases.</dd>
+            <dt>Extraction</dt>
+            <dd data-i18n="eli3_extract">Pulling structured data (names, dates, fields, JSON) out of unstructured text. One of the most reliable uses of small local models.</dd>
+            <dt>Agents</dt>
+            <dd data-i18n="eli3_agents">Models that call tools, loop, and make multi-step plans. They need enough intelligence to decide what to do next without getting lost. 13B is roughly the floor for reliable agent behavior.</dd>
+          </dl>
+        </details>
+      </div>
+
+      <!-- RULE 1.4 -->
+      <div class="rule">
+        <div class="rule-tag" data-i18n="r4tag">§ 1.4 &nbsp;·&nbsp; Offload math</div>
+        <h3 class="rule-title" data-i18n="r4title">Every layer on GPU is 5 to 20× faster</h3>
+        <p class="rule-body" data-i18n="r4body">With llama.cpp, you pick how many layers live on GPU (<code>-ngl</code>). Full offload is always fastest. If even one layer spills to CPU, throughput collapses disproportionately: aim for 100 percent or don't bother. Prefer a smaller quant that fully fits over a larger one that partially offloads.</p>
+        <pre class="rule-formula">
+<span class="comment"># Priority order when VRAM-limited:</span>
+1. smaller quant (Q4 over Q6)
+2. shorter context
+3. smaller model (7B over 13B)
+4. <span class="keyword">last resort:</span> partial offload
+        </pre>
+        <details class="eli">
+          <summary data-i18n="eliLabel">Quick glossary</summary>
+          <dl class="eli-content">
+            <dt>Offload</dt>
+            <dd data-i18n="eli4_offload">Moving some of the model's layers onto the GPU instead of running them on CPU. More layers on GPU means faster inference, until you run out of VRAM.</dd>
+            <dt>-ngl flag</dt>
+            <dd data-i18n="eli4_ngl">"Number of GPU Layers." The llama.cpp command-line option that tells it how many layers to put on the GPU. Setting it to a high number like 999 means "put everything possible."</dd>
+            <dt>Partial offload</dt>
+            <dd data-i18n="eli4_partial">When only some layers fit on GPU and the rest run on CPU. Sounds reasonable but performance falls off a cliff because every token has to bounce between the two.</dd>
+            <dt>Layers</dt>
+            <dd data-i18n="eli4_layers">Transformer blocks stacked on top of each other. A 7B model typically has 32 layers; 70B has 80. Each layer processes the data in turn.</dd>
+          </dl>
+        </details>
+      </div>
+
+      <!-- RULE 1.5 -->
+      <div class="rule">
+        <div class="rule-tag" data-i18n="r5tag">§ 1.5 &nbsp;·&nbsp; Memory bandwidth is king</div>
+        <h3 class="rule-title" data-i18n="r5title">Inference speed &#8776; bandwidth ÷ model size</h3>
+        <p class="rule-body" data-i18n="r5body">A 7B Q4 model (~4 GB) on a 1 TB/s GPU has a theoretical ceiling of ~250 tok/s. Halve the bandwidth, halve the speed. This is why Apple Silicon with unified memory (400 to 800 GB/s) runs laps around discrete GPUs forced to use DDR5 system RAM (~60 GB/s).</p>
+        <pre class="rule-formula">
+<span class="comment"># Memory bandwidth &#215; 0.6 &#247; model_GB</span>
+RTX 4090       &#8594;  1008 GB/s
+M4 Max         &#8594;   546 GB/s
+M2 Ultra       &#8594;   800 GB/s
+DDR5 (CPU-only)&#8594;   ~60 GB/s
+        </pre>
+        <details class="eli">
+          <summary data-i18n="eliLabel">Quick glossary</summary>
+          <dl class="eli-content">
+            <dt>Memory bandwidth</dt>
+            <dd data-i18n="eli5_bw">How fast data can be moved between memory and the processor, measured in GB/s. Inference is bottlenecked by this far more than by raw compute: the GPU spends most of its time waiting for weights to arrive.</dd>
+            <dt>Unified memory</dt>
+            <dd data-i18n="eli5_unified">Apple Silicon architecture where CPU and GPU share one big fast memory pool. No copying between RAM and VRAM, and you get much higher bandwidth than regular system RAM.</dd>
+            <dt>tok/s</dt>
+            <dd data-i18n="eli5_toks">Tokens per second. The standard throughput metric. Human reading speed is around 5 to 10 tok/s; anything above 40 feels comfortable in chat.</dd>
+            <dt>DDR5</dt>
+            <dd data-i18n="eli5_ddr5">Current-generation system RAM. Fast for general computing (~60 GB/s), painfully slow for LLM inference compared to GPU memory.</dd>
+          </dl>
+        </details>
+      </div>
+
+      <!-- RULE 1.6 -->
+      <div class="rule">
+        <div class="rule-tag" data-i18n="r6tag">§ 1.6 &nbsp;·&nbsp; Sampling parameters</div>
+        <h3 class="rule-title" data-i18n="r6title">Defaults you actually want</h3>
+        <p class="rule-body" data-i18n="r6body">For most chat tasks: <code>temperature 0.7</code>, <code>top_p 0.9</code>, <code>min_p 0.05</code>, <code>repeat_penalty 1.05</code>. For code and JSON: drop temp to 0.1 to 0.3. For creative writing: push temp to 0.9 to 1.1 and lean on min_p instead of top_k. Avoid stacking top_k + top_p + min_p: pick one filter.</p>
+        <pre class="rule-formula">
+<span class="keyword">chat</span>       temp=0.7  min_p=0.05
+<span class="keyword">code/JSON</span>  temp=0.2  top_p=0.95
+<span class="keyword">creative</span>   temp=1.0  min_p=0.02
+<span class="keyword">extract</span>    temp=0.0  (greedy)
+        </pre>
+        <details class="eli">
+          <summary data-i18n="eliLabel">Quick glossary</summary>
+          <dl class="eli-content">
+            <dt>Temperature</dt>
+            <dd data-i18n="eli6_temp">Controls randomness. 0.0 always picks the single most likely next token (deterministic); 1.0 samples closer to the raw probability distribution; above 1.0 flattens the distribution and gets weird.</dd>
+            <dt>top_p (nucleus)</dt>
+            <dd data-i18n="eli6_topp">Keep only the most likely tokens whose cumulative probability adds up to this threshold. top_p = 0.9 means "consider the tokens that together cover 90 percent of the probability mass."</dd>
+            <dt>min_p</dt>
+            <dd data-i18n="eli6_minp">A newer, better filter. Discards any token less likely than min_p times the top candidate. Adapts to how confident the model is on each step. Safer default than top_p.</dd>
+            <dt>top_k</dt>
+            <dd data-i18n="eli6_topk">Keep only the k most likely tokens, throw out the rest. Blunt and somewhat outdated compared to min_p.</dd>
+            <dt>Greedy</dt>
+            <dd data-i18n="eli6_greedy">Temperature = 0. Always picks the single most likely token. Fully deterministic; best for extraction and strict JSON output.</dd>
+            <dt>repeat_penalty</dt>
+            <dd data-i18n="eli6_rep">Slightly reduces the probability of tokens that just appeared. Prevents the model from getting stuck in loops. 1.05 to 1.1 is subtle and safe; higher values distort vocabulary.</dd>
+          </dl>
+        </details>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ============ SECTION 2: QUANTS ============ -->
+<section id="quants">
+  <div class="container">
+    <div class="section-header">
+      <div class="section-num">02</div>
+      <div class="section-title-block">
+        <h2 data-i18n-html="s2title">Quantization <em>ladder</em></h2>
+        <p class="section-subtitle" data-i18n="s2sub">The compression levels you'll see in GGUF filenames. Lower numbers mean fewer bits per weight: smaller files, faster inference, more quality loss. The suffix (K_S, K_M, K_L) indicates which layers are quantized more aggressively.</p>
+      </div>
+    </div>
+
+    <div class="quant-intro">
+      <p data-i18n-html="q2_p1">Quantization replaces 16-bit floats with lower-precision integers. <strong>Q4</strong> means roughly 4 bits per weight, <strong>Q6</strong> roughly 6, and so on. The "K" family (K-quants) uses mixed precision: <em>K_S</em> quantizes everything uniformly, <em>K_M</em> keeps important tensors at higher precision, <em>K_L</em> is the most conservative.</p>
+      <p data-i18n-html="q2_p2">The practical sweet spot for most models is <strong>Q4_K_M</strong>: about a 70 percent file-size reduction versus FP16 with quality loss typically under 2 percent on benchmarks. Going below Q4 degrades rapidly; going above Q6 offers diminishing returns.</p>
+    </div>
+
+    <div class="quant-table-wrap">
+    <table class="quant-table">
+      <thead>
+        <tr>
+          <th style="width: 14%" data-i18n="qh1">Quant</th>
+          <th style="width: 12%" data-i18n="qh2">Bits/w</th>
+          <th style="width: 14%" data-i18n="qh3">7B size</th>
+          <th style="width: 14%" data-i18n="qh4">Verdict</th>
+          <th style="width: 16%" data-i18n="qh5">Quality</th>
+          <th data-i18n="qh6">When to use</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><div class="quant-name">Q2_K</div></td>
+          <td>~2.6</td>
+          <td>2.8 GB</td>
+          <td><span class="quant-tier tier-avoid" data-i18n="tier_avoid">Avoid</span></td>
+          <td><div class="quality-bar"><span class="on"></span><span></span><span></span><span></span><span></span></div></td>
+          <td data-i18n="qr1">Toy experiments only. Coherence breaks down badly on models below 30B.</td>
+        </tr>
+        <tr>
+          <td><div class="quant-name">Q3_K_M</div></td>
+          <td>~3.4</td>
+          <td>3.5 GB</td>
+          <td><span class="quant-tier tier-budget" data-i18n="tier_budget">Budget</span></td>
+          <td><div class="quality-bar"><span class="on"></span><span class="on"></span><span></span><span></span><span></span></div></td>
+          <td data-i18n="qr2">Only on 30B+ models where the larger parameter count absorbs the damage.</td>
+        </tr>
+        <tr>
+          <td><div class="quant-name">Q4_K_S</div></td>
+          <td>~4.1</td>
+          <td>4.1 GB</td>
+          <td><span class="quant-tier tier-budget" data-i18n="tier_budget">Budget</span></td>
+          <td><div class="quality-bar"><span class="on"></span><span class="on"></span><span class="on"></span><span></span><span></span></div></td>
+          <td data-i18n="qr3">Tight VRAM on 7B class. Noticeable but usable quality trade-off.</td>
+        </tr>
+        <tr>
+          <td><div class="quant-name">Q4_K_M</div></td>
+          <td>~4.8</td>
+          <td>4.4 GB</td>
+          <td><span class="quant-tier tier-sweet" data-i18n="tier_sweet">Sweet spot</span></td>
+          <td><div class="quality-bar"><span class="on"></span><span class="on"></span><span class="on"></span><span class="on"></span><span></span></div></td>
+          <td data-i18n-html="qr4"><strong>The default choice.</strong> Best size-to-quality ratio for almost any model. Start here.</td>
+        </tr>
+        <tr>
+          <td><div class="quant-name">Q5_K_M</div></td>
+          <td>~5.7</td>
+          <td>5.1 GB</td>
+          <td><span class="quant-tier tier-quality" data-i18n="tier_quality">Quality</span></td>
+          <td><div class="quality-bar"><span class="on"></span><span class="on"></span><span class="on"></span><span class="on"></span><span></span></div></td>
+          <td data-i18n="qr5">When you have 15 to 20 percent more VRAM to spare. Slightly sharper on reasoning tasks.</td>
+        </tr>
+        <tr>
+          <td><div class="quant-name">Q6_K</div></td>
+          <td>~6.6</td>
+          <td>5.9 GB</td>
+          <td><span class="quant-tier tier-quality" data-i18n="tier_quality">Quality</span></td>
+          <td><div class="quality-bar"><span class="on"></span><span class="on"></span><span class="on"></span><span class="on"></span><span class="on"></span></div></td>
+          <td data-i18n="qr6">Nearly indistinguishable from FP16 on most benchmarks. Ceiling for practical use.</td>
+        </tr>
+        <tr>
+          <td><div class="quant-name">Q8_0</div></td>
+          <td>~8.5</td>
+          <td>7.2 GB</td>
+          <td><span class="quant-tier tier-reference" data-i18n="tier_ref">Reference</span></td>
+          <td><div class="quality-bar"><span class="on"></span><span class="on"></span><span class="on"></span><span class="on"></span><span class="on"></span></div></td>
+          <td data-i18n="qr7">Functionally lossless. Useful as a quality reference or for fine-tuning base.</td>
+        </tr>
+        <tr>
+          <td><div class="quant-name">FP16 / F16</div></td>
+          <td>16.0</td>
+          <td>13.5 GB</td>
+          <td><span class="quant-tier tier-reference" data-i18n="tier_ref">Reference</span></td>
+          <td><div class="quality-bar"><span class="on"></span><span class="on"></span><span class="on"></span><span class="on"></span><span class="on"></span></div></td>
+          <td data-i18n="qr8">Original precision. Only use if you're training, evaluating, or VRAM-rich.</td>
+        </tr>
+      </tbody>
+    </table>
+    </div>
+
+    <div class="decision-box">
+      <div class="decision-sub" data-i18n="decSub">quick decision</div>
+      <div class="decision-title" data-i18n="decTitle">Which quant should I actually download?</div>
+      <div class="decision-flow">
+        <div class="decision-step"><span class="decision-q" data-i18n="decIf">IF</span><span class="decision-a" data-i18n-html="dec1">you have <strong>more VRAM than the model needs at Q6</strong>, pick Q6_K. Done.</span></div>
+        <div class="decision-step"><span class="decision-q" data-i18n="decElif">ELSE IF</span><span class="decision-a" data-i18n-html="dec2">the model fits comfortably at Q4_K_M with full GPU offload, <strong>pick Q4_K_M.</strong></span></div>
+        <div class="decision-step"><span class="decision-q" data-i18n="decElif">ELSE IF</span><span class="decision-a" data-i18n-html="dec3">you're on a 30B+ model and tight, Q3_K_M is acceptable.</span></div>
+        <div class="decision-step"><span class="decision-q" data-i18n="decElse">ELSE</span><span class="decision-a" data-i18n-html="dec4">drop to a <strong>smaller model at Q4_K_M</strong> rather than the same model at Q2.</span></div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ============ SECTION 3: FORMATS ============ -->
+<section id="formats">
+  <div class="container">
+    <div class="section-header">
+      <div class="section-num">03</div>
+      <div class="section-title-block">
+        <h2 data-i18n-html="s3title">Formats <em>&amp; containers</em></h2>
+        <p class="section-subtitle" data-i18n="s3sub">The file format dictates which runtime you can use and, more subtly, how well the model runs on your specific hardware. For most people, GGUF is the answer, but the alternatives matter on specific rigs.</p>
+      </div>
+    </div>
+
+    <div class="formats-grid">
+
+      <div class="format-card primary">
+        <span class="format-badge badge-primary" data-i18n="fb1">Primary choice</span>
+        <div class="format-name">GGUF</div>
+        <div class="format-expansion" data-i18n="fe1">GPT-generated unified format</div>
+        <p class="format-desc" data-i18n="fd1">Successor to GGML. Single-file packaging with metadata embedded. Runs on CPU, GPU, and hybrid via llama.cpp, Ollama, LM Studio, koboldcpp. The universal format: if you only learn one, learn this.</p>
+        <div class="format-attrs">
+          <div class="format-attr"><span class="format-attr-key" data-i18n="fa_runtime">Runtime</span><span class="format-attr-val">llama.cpp family</span></div>
+          <div class="format-attr"><span class="format-attr-key" data-i18n="fa_hw">Hardware</span><span class="format-attr-val" data-i18n="fa1_hw">Any (CPU/GPU/mixed)</span></div>
+          <div class="format-attr"><span class="format-attr-key" data-i18n="fa_quant">Quants</span><span class="format-attr-val">Q2 to Q8, FP16</span></div>
+          <div class="format-attr"><span class="format-attr-key" data-i18n="fa_best">Best for</span><span class="format-attr-val" data-i18n="fa1_best">Everything</span></div>
+        </div>
+      </div>
+
+      <div class="format-card">
+        <span class="format-badge badge-alt" data-i18n="fb2">Speed-focused</span>
+        <div class="format-name">EXL2</div>
+        <div class="format-expansion" data-i18n="fe2">ExLlamaV2 · GPU only</div>
+        <p class="format-desc" data-i18n="fd2">Mixed-precision quantization targeting NVIDIA GPUs. Faster than GGUF on pure GPU workloads, especially for batched inference. Run via exllamav2 or TabbyAPI. Pays off on 3090/4090/5090-class cards.</p>
+        <div class="format-attrs">
+          <div class="format-attr"><span class="format-attr-key" data-i18n="fa_runtime">Runtime</span><span class="format-attr-val">ExLlamaV2, TabbyAPI</span></div>
+          <div class="format-attr"><span class="format-attr-key" data-i18n="fa_hw">Hardware</span><span class="format-attr-val" data-i18n="fa2_hw">NVIDIA GPU only</span></div>
+          <div class="format-attr"><span class="format-attr-key" data-i18n="fa_quant">Quants</span><span class="format-attr-val">2.0 to 8.0 bpw</span></div>
+          <div class="format-attr"><span class="format-attr-key" data-i18n="fa_best">Best for</span><span class="format-attr-val" data-i18n="fa2_best">Max GPU throughput</span></div>
+        </div>
+      </div>
+
+      <div class="format-card">
+        <span class="format-badge badge-alt" data-i18n="fb3">Apple Silicon</span>
+        <div class="format-name">MLX</div>
+        <div class="format-expansion" data-i18n="fe3">Apple machine learning</div>
+        <p class="format-desc" data-i18n="fd3">Apple's native ML framework. On M-series chips, MLX versions often run 15 to 30 percent faster than equivalent GGUF builds because they exploit the unified memory architecture and Metal Performance Shaders directly.</p>
+        <div class="format-attrs">
+          <div class="format-attr"><span class="format-attr-key" data-i18n="fa_runtime">Runtime</span><span class="format-attr-val">mlx-lm, LM Studio</span></div>
+          <div class="format-attr"><span class="format-attr-key" data-i18n="fa_hw">Hardware</span><span class="format-attr-val" data-i18n="fa3_hw">Apple Silicon only</span></div>
+          <div class="format-attr"><span class="format-attr-key" data-i18n="fa_quant">Quants</span><span class="format-attr-val">4-bit, 8-bit, FP16</span></div>
+          <div class="format-attr"><span class="format-attr-key" data-i18n="fa_best">Best for</span><span class="format-attr-val" data-i18n="fa3_best">M1/M2/M3/M4 Macs</span></div>
+        </div>
+      </div>
+
+      <div class="format-card">
+        <span class="format-badge badge-legacy" data-i18n="fb4">Inference servers</span>
+        <div class="format-name">AWQ</div>
+        <div class="format-expansion" data-i18n="fe4">Activation-aware weight quant.</div>
+        <p class="format-desc" data-i18n="fd4">4-bit GPU quantization with excellent quality retention. Favored by vLLM, TGI, and SGLang for production serving with request batching. Overkill for single-user desktop use, but the right answer for internal inference endpoints.</p>
+        <div class="format-attrs">
+          <div class="format-attr"><span class="format-attr-key" data-i18n="fa_runtime">Runtime</span><span class="format-attr-val">vLLM, TGI, SGLang</span></div>
+          <div class="format-attr"><span class="format-attr-key" data-i18n="fa_hw">Hardware</span><span class="format-attr-val" data-i18n="fa4_hw">NVIDIA GPU</span></div>
+          <div class="format-attr"><span class="format-attr-key" data-i18n="fa_quant">Quants</span><span class="format-attr-val" data-i18n="fa4_quant">Mostly 4-bit</span></div>
+          <div class="format-attr"><span class="format-attr-key" data-i18n="fa_best">Best for</span><span class="format-attr-val" data-i18n="fa4_best">Multi-user serving</span></div>
+        </div>
+      </div>
+
+      <div class="format-card">
+        <span class="format-badge badge-legacy" data-i18n="fb5">Legacy GPU</span>
+        <div class="format-name">GPTQ</div>
+        <div class="format-expansion" data-i18n="fe5">Post-training quantization</div>
+        <p class="format-desc" data-i18n="fd5">Earlier GPU quantization scheme. Largely superseded by AWQ and EXL2 for new deployments, but still widespread on Hugging Face. Works with transformers + auto-gptq. Fine if it's what's available.</p>
+        <div class="format-attrs">
+          <div class="format-attr"><span class="format-attr-key" data-i18n="fa_runtime">Runtime</span><span class="format-attr-val">transformers, AutoGPTQ</span></div>
+          <div class="format-attr"><span class="format-attr-key" data-i18n="fa_hw">Hardware</span><span class="format-attr-val" data-i18n="fa5_hw">NVIDIA GPU</span></div>
+          <div class="format-attr"><span class="format-attr-key" data-i18n="fa_quant">Quants</span><span class="format-attr-val">3, 4, 8-bit</span></div>
+          <div class="format-attr"><span class="format-attr-key" data-i18n="fa_best">Best for</span><span class="format-attr-val" data-i18n="fa5_best">Existing pipelines</span></div>
+        </div>
+      </div>
+
+      <div class="format-card">
+        <span class="format-badge badge-legacy" data-i18n="fb6">Original</span>
+        <div class="format-name">Safetensors</div>
+        <div class="format-expansion" data-i18n="fe6">Unquantized FP16 / BF16</div>
+        <p class="format-desc" data-i18n="fd6">The original weights as released by the lab. Safe replacement for pickle-based checkpoints. You want these only for training, fine-tuning, or converting to another format. Too large and slow for direct inference on most desks.</p>
+        <div class="format-attrs">
+          <div class="format-attr"><span class="format-attr-key" data-i18n="fa_runtime">Runtime</span><span class="format-attr-val">transformers, diffusers</span></div>
+          <div class="format-attr"><span class="format-attr-key" data-i18n="fa_hw">Hardware</span><span class="format-attr-val" data-i18n="fa6_hw">GPU w/ 2 × params GB</span></div>
+          <div class="format-attr"><span class="format-attr-key" data-i18n="fa6_prec_k">Precision</span><span class="format-attr-val">FP16, BF16, FP32</span></div>
+          <div class="format-attr"><span class="format-attr-key" data-i18n="fa_best">Best for</span><span class="format-attr-val" data-i18n="fa6_best">Training &amp; conversion</span></div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ============ SECTION 4: THROUGHPUT ============ -->
+<section id="throughput">
+  <div class="container">
+    <div class="section-header">
+      <div class="section-num">04</div>
+      <div class="section-title-block">
+        <h2 data-i18n-html="s4title">Throughput <em>vs quality</em></h2>
+        <p class="section-subtitle" data-i18n="s4sub">What tokens-per-second ranges feel like in practice, and what hardware you need to hit them. Numbers below are for a 7B class model at Q4_K_M with a 4k context. Scale down roughly linearly for larger models.</p>
+      </div>
+    </div>
+
+    <div class="throughput-container">
+
+      <div class="speed-scale">
+        <div class="speed-scale-title" data-i18n="ssTitle">Perceptual speed bands</div>
+        <div class="speed-scale-sub" data-i18n="ssSub">tokens per second, as felt by a reader</div>
+
+        <div class="speed-bar">
+          <div class="speed-bar-header"><span class="speed-bar-label" data-i18n="sb1">Painful</span><span class="speed-bar-value">&lt; 5 tok/s</span></div>
+          <div class="speed-bar-track"><div class="speed-bar-fill" style="width: 8%;"></div></div>
+          <div class="speed-bar-note" data-i18n="sb1n">Slower than reading aloud. Usable for batch jobs only.</div>
+        </div>
+
+        <div class="speed-bar">
+          <div class="speed-bar-header"><span class="speed-bar-label" data-i18n="sb2">Tolerable</span><span class="speed-bar-value">5 to 15 tok/s</span></div>
+          <div class="speed-bar-track"><div class="speed-bar-fill" style="width: 25%;"></div></div>
+          <div class="speed-bar-note" data-i18n="sb2n">Roughly human reading speed. Acceptable for long-form answers.</div>
+        </div>
+
+        <div class="speed-bar">
+          <div class="speed-bar-header"><span class="speed-bar-label" data-i18n="sb3">Comfortable</span><span class="speed-bar-value">15 to 40 tok/s</span></div>
+          <div class="speed-bar-track"><div class="speed-bar-fill" style="width: 50%;"></div></div>
+          <div class="speed-bar-note" data-i18n="sb3n">Feels responsive. The minimum for interactive chat.</div>
+        </div>
+
+        <div class="speed-bar">
+          <div class="speed-bar-header"><span class="speed-bar-label" data-i18n="sb4">Fluent</span><span class="speed-bar-value">40 to 100 tok/s</span></div>
+          <div class="speed-bar-track"><div class="speed-bar-fill" style="width: 75%;"></div></div>
+          <div class="speed-bar-note" data-i18n="sb4n">Output faster than you can read. Great for agent loops.</div>
+        </div>
+
+        <div class="speed-bar">
+          <div class="speed-bar-header"><span class="speed-bar-label" data-i18n="sb5">Instant</span><span class="speed-bar-value">100+ tok/s</span></div>
+          <div class="speed-bar-track"><div class="speed-bar-fill" style="width: 100%;"></div></div>
+          <div class="speed-bar-note" data-i18n="sb5n">Perceptually complete. Enables real-time tool use and streaming UX.</div>
+        </div>
+      </div>
+
+      <div class="throughput-specs">
+        <div class="hw-row">
+          <div>
+            <div class="hw-hardware" data-i18n="hw1">CPU only</div>
+            <div class="hw-spec" data-i18n="hw1s">Modern x86, 32 GB DDR5</div>
+          </div>
+          <div class="hw-perf" data-i18n-html="hw1p">
+            7B Q4: <strong>3 to 7 tok/s</strong><br>
+            13B Q4: <strong>1 to 3 tok/s</strong><br>
+            <em>Last-resort tier. Avoid for interactive use.</em>
+          </div>
+        </div>
+
+        <div class="hw-row">
+          <div>
+            <div class="hw-hardware">RTX 3060 12GB</div>
+            <div class="hw-spec" data-i18n="hw2s">360 GB/s bandwidth</div>
+          </div>
+          <div class="hw-perf" data-i18n-html="hw2p">
+            7B Q4: <strong>40 to 55 tok/s</strong><br>
+            13B Q4: <strong>20 to 28 tok/s</strong><br>
+            <em>Budget sweet spot for single-user chat.</em>
+          </div>
+        </div>
+
+        <div class="hw-row">
+          <div>
+            <div class="hw-hardware">RTX 4090</div>
+            <div class="hw-spec" data-i18n="hw3s">1008 GB/s, 24 GB VRAM</div>
+          </div>
+          <div class="hw-perf" data-i18n-html="hw3p">
+            7B Q4: <strong>120 to 180 tok/s</strong><br>
+            34B Q4: <strong>35 to 50 tok/s</strong><br>
+            <em>The prosumer standard. Handles 34B comfortably.</em>
+          </div>
+        </div>
+
+        <div class="hw-row">
+          <div>
+            <div class="hw-hardware">M4 Max 64GB</div>
+            <div class="hw-spec" data-i18n="hw4s">546 GB/s unified memory</div>
+          </div>
+          <div class="hw-perf" data-i18n-html="hw4p">
+            7B Q4: <strong>70 to 95 tok/s</strong><br>
+            70B Q4: <strong>8 to 12 tok/s</strong><br>
+            <em>Huge VRAM pool. Can actually load 70B models.</em>
+          </div>
+        </div>
+
+        <div class="hw-row">
+          <div>
+            <div class="hw-hardware">M2/M3 Ultra 192GB</div>
+            <div class="hw-spec" data-i18n="hw5s">800 GB/s unified memory</div>
+          </div>
+          <div class="hw-perf" data-i18n-html="hw5p">
+            70B Q4: <strong>12 to 20 tok/s</strong><br>
+            120B Q4: <strong>5 to 8 tok/s</strong><br>
+            <em>The large-model desk option. Slow but feasible.</em>
+          </div>
+        </div>
+
+        <div class="hw-row">
+          <div>
+            <div class="hw-hardware" data-i18n="hw6">Dual 3090 / 4090</div>
+            <div class="hw-spec" data-i18n="hw6s">48 GB VRAM total</div>
+          </div>
+          <div class="hw-perf" data-i18n-html="hw6p">
+            70B Q4: <strong>15 to 25 tok/s</strong><br>
+            34B Q8: <strong>30 to 45 tok/s</strong><br>
+            <em>Best price-per-token for 70B-class local inference.</em>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ============ SECTION 5: TIPS ============ -->
+<section id="tips">
+  <div class="container">
+    <div class="section-header">
+      <div class="section-num">05</div>
+      <div class="section-title-block">
+        <h2 data-i18n-html="s5title">Tips <em>&amp; tricks</em></h2>
+        <p class="section-subtitle" data-i18n="s5sub">The things that aren't in the README but show up the moment you actually try to use this stuff for real work. Hard-won operational knowledge, distilled.</p>
+      </div>
+    </div>
+
+    <p class="tips-intro" data-i18n-html="tipsIntro">Most local-LLM disappointment comes from <em>mismatched expectations</em> rather than weak hardware. These are the adjustments that make a desktop model feel professional rather than like a toy.</p>
+
+    <div class="tips-grid">
+
+      <div class="tip"><div class="tip-num">i.</div><div>
+        <h4 class="tip-title" data-i18n="tip1t">Use flash attention when available</h4>
+        <p class="tip-body" data-i18n-html="tip1b">In llama.cpp, pass <code>-fa</code>. Cuts KV cache memory and speeds up prompt processing, especially at long contexts. It's stable enough now that there's no reason to leave it off.</p>
+      </div></div>
+
+      <div class="tip"><div class="tip-num">ii.</div><div>
+        <h4 class="tip-title" data-i18n="tip2t">Quantize the KV cache separately</h4>
+        <p class="tip-body" data-i18n-html="tip2b">Use <code>--cache-type-k q8_0 --cache-type-v q8_0</code> to halve KV memory with negligible quality loss. This alone can unlock 2× the context on a tight VRAM budget.</p>
+      </div></div>
+
+      <div class="tip"><div class="tip-num">iii.</div><div>
+        <h4 class="tip-title" data-i18n="tip3t">Imatrix quants are better than plain ones</h4>
+        <p class="tip-body" data-i18n="tip3b">Look for "IQ" variants (IQ3_M, IQ4_XS) or quants marked "imatrix" in the filename. They use a calibration dataset to preserve quality in the quantized weights, often matching a full bit-level higher in standard quants.</p>
+      </div></div>
+
+      <div class="tip"><div class="tip-num">iv.</div><div>
+        <h4 class="tip-title" data-i18n="tip4t">Don't trust perplexity; trust task benchmarks</h4>
+        <p class="tip-body" data-i18n="tip4b">Perplexity differences between Q4 and Q6 are tiny on paper but can mean the difference between working and broken JSON output. Always test the quant on your actual workload before committing.</p>
+      </div></div>
+
+      <div class="tip"><div class="tip-num">v.</div><div>
+        <h4 class="tip-title" data-i18n="tip5t">Match the prompt template exactly</h4>
+        <p class="tip-body" data-i18n="tip5b">Every instruct-tuned model has a specific chat template (ChatML, Llama-3, Mistral, Gemma). Using the wrong one degrades output dramatically, sometimes silently. Check the model card and verify your frontend is applying it correctly.</p>
+      </div></div>
+
+      <div class="tip"><div class="tip-num">vi.</div><div>
+        <h4 class="tip-title" data-i18n="tip6t">Prompt processing is not generation speed</h4>
+        <p class="tip-body" data-i18n="tip6b">Models quote generation tok/s, but ingesting a 16k prompt can take 30+ seconds before the first output token. For RAG and long-context work, prompt processing is often the real bottleneck. Benchmark both.</p>
+      </div></div>
+
+      <div class="tip"><div class="tip-num">vii.</div><div>
+        <h4 class="tip-title" data-i18n="tip7t">Speculative decoding is real magic</h4>
+        <p class="tip-body" data-i18n-html="tip7b">Pair a small "draft" model with your main model (e.g. 1B drafts for a 70B). The large model verifies the draft's guesses in parallel, often delivering 1.5 to 3× speedup with zero quality loss. Supported in llama.cpp via <code>--model-draft</code>.</p>
+      </div></div>
+
+      <div class="tip"><div class="tip-num">viii.</div><div>
+        <h4 class="tip-title" data-i18n="tip8t">MoE models punch above their weight</h4>
+        <p class="tip-body" data-i18n="tip8b">Mixture-of-Experts models (Mixtral, Qwen3-MoE, DeepSeek) activate only a fraction of parameters per token. A 47B MoE often runs at 13B speeds while delivering 70B-class quality. Check the "active parameters" figure, not the total.</p>
+      </div></div>
+
+      <div class="tip"><div class="tip-num">ix.</div><div>
+        <h4 class="tip-title" data-i18n="tip9t">Context shifting saves your latency</h4>
+        <p class="tip-body" data-i18n-html="tip9b">Enable prompt caching / context shifting so that repeat system prompts and recent turns don't get reprocessed. llama.cpp's <code>--prompt-cache</code> and Ollama's built-in caching can turn a 5-second chat turn into a 500ms one.</p>
+      </div></div>
+
+      <div class="tip"><div class="tip-num">x.</div><div>
+        <h4 class="tip-title" data-i18n="tip10t">Thermals throttle inference silently</h4>
+        <p class="tip-body" data-i18n="tip10b">Sustained GPU inference pushes cards to their power limits for minutes at a time. If your tok/s drops 15 to 20 percent after the first few prompts, it's thermal throttling, not the software. Improve case airflow before blaming the model.</p>
+      </div></div>
+
+      <div class="tip"><div class="tip-num">xi.</div><div>
+        <h4 class="tip-title" data-i18n="tip11t">Benchmark with realistic prompts</h4>
+        <p class="tip-body" data-i18n="tip11b">The "hello, tell me a joke" benchmark is useless. Measure with a representative prompt from your actual workload, ideally a RAG chunk at the context length you'll really use. Numbers from YouTube reviews rarely match your use case.</p>
+      </div></div>
+
+      <div class="tip"><div class="tip-num">xii.</div><div>
+        <h4 class="tip-title" data-i18n="tip12t">A newer small model beats an older big one</h4>
+        <p class="tip-body" data-i18n="tip12b">Progress in post-training means a well-tuned 8B released this quarter often outperforms last year's 34B on practical tasks. Check leaderboards by date, not just by size. The frontier moves quickly, especially for chat and tool use.</p>
+      </div></div>
+
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="container">
+    <div class="footer-mark">fin.</div>
+    <div class="footer-sub" data-i18n="footerSub">local/LLM field manual · compiled for practitioners</div>
+  </div>
+</footer>
+
+<script>
+  // ============ I18N DICTIONARY ============
+  const translations = {
+    en: {
+      specLabel: "SPECIFICATION",
+      eyebrow: "A practitioner's cheat sheet",
+      h1: "Running models <em>on your own iron.</em>",
+      lede: "Quantization, context, throughput: the knobs that actually matter when you move an LLM off the cloud and onto your desk. No hand-waving, just the numbers that hold up in practice.",
+      spec1k: "Target reader", spec1v: "self-hoster",
+      spec2k: "Stack", spec2v: "llama.cpp · Ollama · LM Studio",
+      spec3k: "Formats covered", spec3v: "GGUF · EXL2 · AWQ · GPTQ · MLX",
+      spec4k: "Precision", spec4v: "Q2 to FP16",
+      spec5k: "Bias", spec5v: "practical over theoretical",
+      toc1: "Rules of thumb", toc2: "Quantization ladder", toc3: "Formats & containers", toc4: "Throughput vs quality", toc5: "Tips & tricks",
+
+      s1title: "Rules <em>of thumb</em>",
+      s1sub: "The back-of-envelope math that tells you whether a model will load at all, and whether it will run fast enough to be useful. Memorize these before you download a 40 GB file.",
+      eliLabel: "Quick glossary",
+
+      r1tag: "§ 1.1 &nbsp;·&nbsp; VRAM budget",
+      r1title: "Parameters × bytes per weight + overhead",
+      r1body: "Multiply the parameter count by the quantization's bytes-per-weight, then add roughly 20 to 25 percent for KV cache and activations. At Q4 (~0.5 B/param), a 7B fits in ~5 GB; at Q8, ~9 GB; at FP16, ~16 GB.",
+      eli1_vram: "Video RAM. The memory physically on your GPU card. The model weights have to fit here or the whole thing spills to slow system memory.",
+      eli1_params: "The numbers the model learned during training. A '7B model' has 7 billion of them. More parameters generally means more capability, but also more memory.",
+      eli1_bpw: "How many bytes each parameter takes up. Full precision uses 2 bytes (FP16); Q4 uses about 0.5 bytes. This is where quantization saves space.",
+      eli1_overhead: "Extra memory the model needs while running, on top of the weights themselves. Mostly the KV cache and intermediate activations. Budget 20 to 25 percent.",
+
+      r2tag: "§ 1.2 &nbsp;·&nbsp; Context window cost",
+      r2title: "KV cache scales with tokens × layers",
+      r2body: "Context isn't free. Each token in the window consumes VRAM roughly equal to <code>2 × layers × hidden_dim × bytes</code>. A 32k context on a 13B model eats 3 to 6 GB on top of the weights. Cut context aggressively if you're close to the edge.",
+      eli2_kv: "Key/Value cache. The model's short-term memory of the conversation so far. Stored so it doesn't have to re-read the whole prompt on every new token. Grows linearly with context length.",
+      eli2_token: "The unit the model reads and writes. Roughly 3 to 4 characters of English, or 1.5 to 2 characters of Portuguese. 'Hello world' is about 2 tokens.",
+      eli2_ctx: "The maximum number of tokens the model can consider at once: system prompt plus chat history plus new input plus the reply it's generating. Exceed it and the earliest content gets dropped.",
+      eli2_layers: "Layers are the stacked blocks that make up the model; hidden_dim is how 'wide' each block is. Bigger values mean more KV memory per token.",
+
+      r3tag: "§ 1.3 &nbsp;·&nbsp; Model size vs task",
+      r3title: "Match parameter count to the job",
+      r3body: "3B models are autocomplete-grade; 7 to 8B handle simple chat and structured extraction; 13 to 14B cross the 'feels coherent' line; 30 to 34B is where reasoning starts to hold; 70B and up rivals frontier APIs on most tasks except the hardest math and code.",
+      eli3_B: "Billion. '7B' means roughly 7 billion parameters. It's the most common rough proxy for model capability, though architecture and training matter too.",
+      eli3_rag: "Retrieval-Augmented Generation. You fetch relevant documents (from a vector database, usually) and paste them into the prompt before the model answers. Lets small models reason over large knowledge bases.",
+      eli3_extract: "Pulling structured data (names, dates, fields, JSON) out of unstructured text. One of the most reliable uses of small local models.",
+      eli3_agents: "Models that call tools, loop, and make multi-step plans. They need enough intelligence to decide what to do next without getting lost. 13B is roughly the floor for reliable agent behavior.",
+
+      r4tag: "§ 1.4 &nbsp;·&nbsp; Offload math",
+      r4title: "Every layer on GPU is 5 to 20× faster",
+      r4body: "With llama.cpp, you pick how many layers live on GPU (<code>-ngl</code>). Full offload is always fastest. If even one layer spills to CPU, throughput collapses disproportionately: aim for 100 percent or don't bother. Prefer a smaller quant that fully fits over a larger one that partially offloads.",
+      eli4_offload: "Moving some of the model's layers onto the GPU instead of running them on CPU. More layers on GPU means faster inference, until you run out of VRAM.",
+      eli4_ngl: "'Number of GPU Layers.' The llama.cpp command-line option that tells it how many layers to put on the GPU. Setting it to a high number like 999 means 'put everything possible.'",
+      eli4_partial: "When only some layers fit on GPU and the rest run on CPU. Sounds reasonable but performance falls off a cliff because every token has to bounce between the two.",
+      eli4_layers: "Transformer blocks stacked on top of each other. A 7B model typically has 32 layers; 70B has 80. Each layer processes the data in turn.",
+
+      r5tag: "§ 1.5 &nbsp;·&nbsp; Memory bandwidth is king",
+      r5title: "Inference speed ≈ bandwidth ÷ model size",
+      r5body: "A 7B Q4 model (~4 GB) on a 1 TB/s GPU has a theoretical ceiling of ~250 tok/s. Halve the bandwidth, halve the speed. This is why Apple Silicon with unified memory (400 to 800 GB/s) runs laps around discrete GPUs forced to use DDR5 system RAM (~60 GB/s).",
+      eli5_bw: "How fast data can be moved between memory and the processor, measured in GB/s. Inference is bottlenecked by this far more than by raw compute: the GPU spends most of its time waiting for weights to arrive.",
+      eli5_unified: "Apple Silicon architecture where CPU and GPU share one big fast memory pool. No copying between RAM and VRAM, and you get much higher bandwidth than regular system RAM.",
+      eli5_toks: "Tokens per second. The standard throughput metric. Human reading speed is around 5 to 10 tok/s; anything above 40 feels comfortable in chat.",
+      eli5_ddr5: "Current-generation system RAM. Fast for general computing (~60 GB/s), painfully slow for LLM inference compared to GPU memory.",
+
+      r6tag: "§ 1.6 &nbsp;·&nbsp; Sampling parameters",
+      r6title: "Defaults you actually want",
+      r6body: "For most chat tasks: <code>temperature 0.7</code>, <code>top_p 0.9</code>, <code>min_p 0.05</code>, <code>repeat_penalty 1.05</code>. For code and JSON: drop temp to 0.1 to 0.3. For creative writing: push temp to 0.9 to 1.1 and lean on min_p instead of top_k. Avoid stacking top_k + top_p + min_p: pick one filter.",
+      eli6_temp: "Controls randomness. 0.0 always picks the single most likely next token (deterministic); 1.0 samples closer to the raw probability distribution; above 1.0 flattens the distribution and gets weird.",
+      eli6_topp: "Keep only the most likely tokens whose cumulative probability adds up to this threshold. top_p = 0.9 means 'consider the tokens that together cover 90 percent of the probability mass.'",
+      eli6_minp: "A newer, better filter. Discards any token less likely than min_p times the top candidate. Adapts to how confident the model is on each step. Safer default than top_p.",
+      eli6_topk: "Keep only the k most likely tokens, throw out the rest. Blunt and somewhat outdated compared to min_p.",
+      eli6_greedy: "Temperature = 0. Always picks the single most likely token. Fully deterministic; best for extraction and strict JSON output.",
+      eli6_rep: "Slightly reduces the probability of tokens that just appeared. Prevents the model from getting stuck in loops. 1.05 to 1.1 is subtle and safe; higher values distort vocabulary.",
+
+      s2title: "Quantization <em>ladder</em>",
+      s2sub: "The compression levels you'll see in GGUF filenames. Lower numbers mean fewer bits per weight: smaller files, faster inference, more quality loss. The suffix (K_S, K_M, K_L) indicates which layers are quantized more aggressively.",
+      q2_p1: "Quantization replaces 16-bit floats with lower-precision integers. <strong>Q4</strong> means roughly 4 bits per weight, <strong>Q6</strong> roughly 6, and so on. The 'K' family (K-quants) uses mixed precision: <em>K_S</em> quantizes everything uniformly, <em>K_M</em> keeps important tensors at higher precision, <em>K_L</em> is the most conservative.",
+      q2_p2: "The practical sweet spot for most models is <strong>Q4_K_M</strong>: about a 70 percent file-size reduction versus FP16 with quality loss typically under 2 percent on benchmarks. Going below Q4 degrades rapidly; going above Q6 offers diminishing returns.",
+      qh1: "Quant", qh2: "Bits/w", qh3: "7B size", qh4: "Verdict", qh5: "Quality", qh6: "When to use",
+      tier_avoid: "Avoid", tier_budget: "Budget", tier_sweet: "Sweet spot", tier_quality: "Quality", tier_ref: "Reference",
+      qr1: "Toy experiments only. Coherence breaks down badly on models below 30B.",
+      qr2: "Only on 30B+ models where the larger parameter count absorbs the damage.",
+      qr3: "Tight VRAM on 7B class. Noticeable but usable quality trade-off.",
+      qr4: "<strong>The default choice.</strong> Best size-to-quality ratio for almost any model. Start here.",
+      qr5: "When you have 15 to 20 percent more VRAM to spare. Slightly sharper on reasoning tasks.",
+      qr6: "Nearly indistinguishable from FP16 on most benchmarks. Ceiling for practical use.",
+      qr7: "Functionally lossless. Useful as a quality reference or for fine-tuning base.",
+      qr8: "Original precision. Only use if you're training, evaluating, or VRAM-rich.",
+      decSub: "quick decision",
+      decTitle: "Which quant should I actually download?",
+      decIf: "IF", decElif: "ELSE IF", decElse: "ELSE",
+      dec1: "you have <strong>more VRAM than the model needs at Q6</strong>, pick Q6_K. Done.",
+      dec2: "the model fits comfortably at Q4_K_M with full GPU offload, <strong>pick Q4_K_M.</strong>",
+      dec3: "you're on a 30B+ model and tight, Q3_K_M is acceptable.",
+      dec4: "drop to a <strong>smaller model at Q4_K_M</strong> rather than the same model at Q2.",
+
+      s3title: "Formats <em>&amp; containers</em>",
+      s3sub: "The file format dictates which runtime you can use and, more subtly, how well the model runs on your specific hardware. For most people, GGUF is the answer, but the alternatives matter on specific rigs.",
+      fa_runtime: "Runtime", fa_hw: "Hardware", fa_quant: "Quants", fa_best: "Best for",
+      fb1: "Primary choice", fe1: "GPT-generated unified format",
+      fd1: "Successor to GGML. Single-file packaging with metadata embedded. Runs on CPU, GPU, and hybrid via llama.cpp, Ollama, LM Studio, koboldcpp. The universal format: if you only learn one, learn this.",
+      fa1_hw: "Any (CPU/GPU/mixed)", fa1_best: "Everything",
+      fb2: "Speed-focused", fe2: "ExLlamaV2 · GPU only",
+      fd2: "Mixed-precision quantization targeting NVIDIA GPUs. Faster than GGUF on pure GPU workloads, especially for batched inference. Run via exllamav2 or TabbyAPI. Pays off on 3090/4090/5090-class cards.",
+      fa2_hw: "NVIDIA GPU only", fa2_best: "Max GPU throughput",
+      fb3: "Apple Silicon", fe3: "Apple machine learning",
+      fd3: "Apple's native ML framework. On M-series chips, MLX versions often run 15 to 30 percent faster than equivalent GGUF builds because they exploit the unified memory architecture and Metal Performance Shaders directly.",
+      fa3_hw: "Apple Silicon only", fa3_best: "M1/M2/M3/M4 Macs",
+      fb4: "Inference servers", fe4: "Activation-aware weight quant.",
+      fd4: "4-bit GPU quantization with excellent quality retention. Favored by vLLM, TGI, and SGLang for production serving with request batching. Overkill for single-user desktop use, but the right answer for internal inference endpoints.",
+      fa4_hw: "NVIDIA GPU", fa4_quant: "Mostly 4-bit", fa4_best: "Multi-user serving",
+      fb5: "Legacy GPU", fe5: "Post-training quantization",
+      fd5: "Earlier GPU quantization scheme. Largely superseded by AWQ and EXL2 for new deployments, but still widespread on Hugging Face. Works with transformers + auto-gptq. Fine if it's what's available.",
+      fa5_hw: "NVIDIA GPU", fa5_best: "Existing pipelines",
+      fb6: "Original", fe6: "Unquantized FP16 / BF16",
+      fd6: "The original weights as released by the lab. Safe replacement for pickle-based checkpoints. You want these only for training, fine-tuning, or converting to another format. Too large and slow for direct inference on most desks.",
+      fa6_hw: "GPU w/ 2 × params GB", fa6_prec_k: "Precision", fa6_best: "Training & conversion",
+
+      s4title: "Throughput <em>vs quality</em>",
+      s4sub: "What tokens-per-second ranges feel like in practice, and what hardware you need to hit them. Numbers below are for a 7B class model at Q4_K_M with a 4k context. Scale down roughly linearly for larger models.",
+      ssTitle: "Perceptual speed bands",
+      ssSub: "tokens per second, as felt by a reader",
+      sb1: "Painful", sb1n: "Slower than reading aloud. Usable for batch jobs only.",
+      sb2: "Tolerable", sb2n: "Roughly human reading speed. Acceptable for long-form answers.",
+      sb3: "Comfortable", sb3n: "Feels responsive. The minimum for interactive chat.",
+      sb4: "Fluent", sb4n: "Output faster than you can read. Great for agent loops.",
+      sb5: "Instant", sb5n: "Perceptually complete. Enables real-time tool use and streaming UX.",
+      hw1: "CPU only", hw1s: "Modern x86, 32 GB DDR5",
+      hw1p: "7B Q4: <strong>3 to 7 tok/s</strong><br>13B Q4: <strong>1 to 3 tok/s</strong><br><em>Last-resort tier. Avoid for interactive use.</em>",
+      hw2s: "360 GB/s bandwidth",
+      hw2p: "7B Q4: <strong>40 to 55 tok/s</strong><br>13B Q4: <strong>20 to 28 tok/s</strong><br><em>Budget sweet spot for single-user chat.</em>",
+      hw3s: "1008 GB/s, 24 GB VRAM",
+      hw3p: "7B Q4: <strong>120 to 180 tok/s</strong><br>34B Q4: <strong>35 to 50 tok/s</strong><br><em>The prosumer standard. Handles 34B comfortably.</em>",
+      hw4s: "546 GB/s unified memory",
+      hw4p: "7B Q4: <strong>70 to 95 tok/s</strong><br>70B Q4: <strong>8 to 12 tok/s</strong><br><em>Huge VRAM pool. Can actually load 70B models.</em>",
+      hw5s: "800 GB/s unified memory",
+      hw5p: "70B Q4: <strong>12 to 20 tok/s</strong><br>120B Q4: <strong>5 to 8 tok/s</strong><br><em>The large-model desk option. Slow but feasible.</em>",
+      hw6: "Dual 3090 / 4090", hw6s: "48 GB VRAM total",
+      hw6p: "70B Q4: <strong>15 to 25 tok/s</strong><br>34B Q8: <strong>30 to 45 tok/s</strong><br><em>Best price-per-token for 70B-class local inference.</em>",
+
+      s5title: "Tips <em>&amp; tricks</em>",
+      s5sub: "The things that aren't in the README but show up the moment you actually try to use this stuff for real work. Hard-won operational knowledge, distilled.",
+      tipsIntro: "Most local-LLM disappointment comes from <em>mismatched expectations</em> rather than weak hardware. These are the adjustments that make a desktop model feel professional rather than like a toy.",
+      tip1t: "Use flash attention when available",
+      tip1b: "In llama.cpp, pass <code>-fa</code>. Cuts KV cache memory and speeds up prompt processing, especially at long contexts. It's stable enough now that there's no reason to leave it off.",
+      tip2t: "Quantize the KV cache separately",
+      tip2b: "Use <code>--cache-type-k q8_0 --cache-type-v q8_0</code> to halve KV memory with negligible quality loss. This alone can unlock 2× the context on a tight VRAM budget.",
+      tip3t: "Imatrix quants are better than plain ones",
+      tip3b: "Look for 'IQ' variants (IQ3_M, IQ4_XS) or quants marked 'imatrix' in the filename. They use a calibration dataset to preserve quality in the quantized weights, often matching a full bit-level higher in standard quants.",
+      tip4t: "Don't trust perplexity; trust task benchmarks",
+      tip4b: "Perplexity differences between Q4 and Q6 are tiny on paper but can mean the difference between working and broken JSON output. Always test the quant on your actual workload before committing.",
+      tip5t: "Match the prompt template exactly",
+      tip5b: "Every instruct-tuned model has a specific chat template (ChatML, Llama-3, Mistral, Gemma). Using the wrong one degrades output dramatically, sometimes silently. Check the model card and verify your frontend is applying it correctly.",
+      tip6t: "Prompt processing is not generation speed",
+      tip6b: "Models quote generation tok/s, but ingesting a 16k prompt can take 30+ seconds before the first output token. For RAG and long-context work, prompt processing is often the real bottleneck. Benchmark both.",
+      tip7t: "Speculative decoding is real magic",
+      tip7b: "Pair a small 'draft' model with your main model (e.g. 1B drafts for a 70B). The large model verifies the draft's guesses in parallel, often delivering 1.5 to 3× speedup with zero quality loss. Supported in llama.cpp via <code>--model-draft</code>.",
+      tip8t: "MoE models punch above their weight",
+      tip8b: "Mixture-of-Experts models (Mixtral, Qwen3-MoE, DeepSeek) activate only a fraction of parameters per token. A 47B MoE often runs at 13B speeds while delivering 70B-class quality. Check the 'active parameters' figure, not the total.",
+      tip9t: "Context shifting saves your latency",
+      tip9b: "Enable prompt caching / context shifting so that repeat system prompts and recent turns don't get reprocessed. llama.cpp's <code>--prompt-cache</code> and Ollama's built-in caching can turn a 5-second chat turn into a 500ms one.",
+      tip10t: "Thermals throttle inference silently",
+      tip10b: "Sustained GPU inference pushes cards to their power limits for minutes at a time. If your tok/s drops 15 to 20 percent after the first few prompts, it's thermal throttling, not the software. Improve case airflow before blaming the model.",
+      tip11t: "Benchmark with realistic prompts",
+      tip11b: "The 'hello, tell me a joke' benchmark is useless. Measure with a representative prompt from your actual workload, ideally a RAG chunk at the context length you'll really use. Numbers from YouTube reviews rarely match your use case.",
+      tip12t: "A newer small model beats an older big one",
+      tip12b: "Progress in post-training means a well-tuned 8B released this quarter often outperforms last year's 34B on practical tasks. Check leaderboards by date, not just by size. The frontier moves quickly, especially for chat and tool use.",
+      footerSub: "local/LLM field manual · compiled for practitioners"
+    },
+
+    pt: {
+      specLabel: "ESPECIFICAÇÃO",
+      eyebrow: "Um guia para praticantes",
+      h1: "Rodando modelos <em>na sua própria máquina.</em>",
+      lede: "Quantização, contexto, throughput: os parâmetros que realmente importam quando você tira um LLM da nuvem e coloca na sua mesa. Sem enrolação, só os números que funcionam na prática.",
+      spec1k: "Público-alvo", spec1v: "quem hospeda localmente",
+      spec2k: "Stack", spec2v: "llama.cpp · Ollama · LM Studio",
+      spec3k: "Formatos cobertos", spec3v: "GGUF · EXL2 · AWQ · GPTQ · MLX",
+      spec4k: "Precisão", spec4v: "Q2 até FP16",
+      spec5k: "Viés", spec5v: "prático, não teórico",
+      toc1: "Regras práticas", toc2: "Escada de quantização", toc3: "Formatos e containers", toc4: "Throughput vs qualidade", toc5: "Dicas e truques",
+
+      s1title: "Regras <em>práticas</em>",
+      s1sub: "A conta de padaria que diz se um modelo vai carregar e se vai rodar rápido o suficiente para ser útil. Decore isso antes de baixar um arquivo de 40 GB.",
+      eliLabel: "Glossário rápido",
+
+      r1tag: "§ 1.1 &nbsp;·&nbsp; Orçamento de VRAM",
+      r1title: "Parâmetros × bytes por peso + overhead",
+      r1body: "Multiplique o número de parâmetros pelos bytes-por-peso da quantização e some uns 20 a 25 por cento para o cache KV e ativações. Em Q4 (~0,5 B/param), um 7B cabe em ~5 GB; em Q8, ~9 GB; em FP16, ~16 GB.",
+      eli1_vram: "Video RAM. A memória que fica fisicamente na sua placa de vídeo. Os pesos do modelo precisam caber aqui, senão tudo transborda para a memória do sistema, que é muito mais lenta.",
+      eli1_params: "Os números que o modelo aprendeu durante o treinamento. Um 'modelo 7B' tem 7 bilhões deles. Mais parâmetros geralmente significa mais capacidade, mas também mais memória.",
+      eli1_bpw: "Quantos bytes cada parâmetro ocupa. Precisão total usa 2 bytes (FP16); Q4 usa cerca de 0,5 byte. É aqui que a quantização economiza espaço.",
+      eli1_overhead: "Memória extra que o modelo precisa enquanto roda, além dos pesos em si. Basicamente o cache KV e ativações intermediárias. Reserve 20 a 25 por cento.",
+
+      r2tag: "§ 1.2 &nbsp;·&nbsp; Custo da janela de contexto",
+      r2title: "Cache KV escala com tokens × camadas",
+      r2body: "Contexto não é de graça. Cada token na janela consome VRAM aproximadamente igual a <code>2 × camadas × hidden_dim × bytes</code>. Um contexto de 32k num modelo de 13B come 3 a 6 GB em cima dos pesos. Corte contexto sem dó quando estiver no limite.",
+      eli2_kv: "Cache de Chave/Valor. A memória de curto prazo do modelo sobre a conversa até aqui. Guardada para ele não ter que reler o prompt inteiro a cada novo token. Cresce linearmente com o comprimento do contexto.",
+      eli2_token: "A unidade que o modelo lê e escreve. Mais ou menos 3 a 4 caracteres em inglês, ou 1,5 a 2 caracteres em português. 'Olá mundo' dá uns 3 tokens.",
+      eli2_ctx: "O número máximo de tokens que o modelo consegue considerar de uma vez: system prompt, histórico da conversa, nova entrada e a resposta que está gerando. Ultrapassou, o conteúdo mais antigo é descartado.",
+      eli2_layers: "Camadas são os blocos empilhados que formam o modelo; hidden_dim é o quão 'largo' cada bloco é. Valores maiores significam mais memória KV por token.",
+
+      r3tag: "§ 1.3 &nbsp;·&nbsp; Tamanho do modelo vs tarefa",
+      r3title: "Combine o número de parâmetros com a tarefa",
+      r3body: "Modelos 3B servem para autocomplete; 7 a 8B aguentam chat simples e extração estruturada; 13 a 14B cruzam a linha do 'parece coerente'; 30 a 34B é onde o raciocínio começa a sustentar; 70B e acima rivaliza com APIs de ponta na maioria das tarefas, exceto matemática e código mais difíceis.",
+      eli3_B: "Bilhão. '7B' significa cerca de 7 bilhões de parâmetros. É o proxy aproximado mais comum para capacidade do modelo, embora arquitetura e treinamento também contem.",
+      eli3_rag: "Retrieval-Augmented Generation (Geração Aumentada por Recuperação). Você busca documentos relevantes (normalmente de um banco de dados vetorial) e cola no prompt antes do modelo responder. Permite que modelos pequenos raciocinem sobre bases de conhecimento grandes.",
+      eli3_extract: "Tirar dados estruturados (nomes, datas, campos, JSON) de texto não estruturado. Um dos usos mais confiáveis de modelos locais pequenos.",
+      eli3_agents: "Modelos que chamam ferramentas, fazem loops e planejam em várias etapas. Precisam de inteligência suficiente para decidir o próximo passo sem se perder. 13B é mais ou menos o piso para comportamento de agente confiável.",
+
+      r4tag: "§ 1.4 &nbsp;·&nbsp; Matemática do offload",
+      r4title: "Cada camada na GPU é de 5 a 20× mais rápida",
+      r4body: "No llama.cpp, você escolhe quantas camadas ficam na GPU (<code>-ngl</code>). Offload total é sempre o mais rápido. Se uma camada só escorrega para a CPU, o throughput despenca de forma desproporcional: mire em 100 por cento ou nem se dê ao trabalho. Prefira uma quantização menor que caiba inteira a uma maior que só caiba em parte.",
+      eli4_offload: "Mover algumas das camadas do modelo para a GPU em vez de rodar na CPU. Mais camadas na GPU, mais rápida a inferência, até a VRAM acabar.",
+      eli4_ngl: "'Number of GPU Layers' (Número de Camadas na GPU). A opção de linha de comando do llama.cpp que diz quantas camadas colocar na GPU. Um número alto como 999 significa 'coloca tudo que puder'.",
+      eli4_partial: "Quando só parte das camadas cabe na GPU e o resto roda na CPU. Parece razoável, mas o desempenho cai de um penhasco porque cada token tem que saltar entre as duas.",
+      eli4_layers: "Blocos Transformer empilhados um em cima do outro. Um modelo 7B tipicamente tem 32 camadas; um 70B tem 80. Cada camada processa os dados por vez.",
+
+      r5tag: "§ 1.5 &nbsp;·&nbsp; Largura de banda de memória é rei",
+      r5title: "Velocidade de inferência ≈ banda ÷ tamanho do modelo",
+      r5body: "Um modelo 7B Q4 (~4 GB) numa GPU de 1 TB/s tem teto teórico de ~250 tok/s. Reduza a banda pela metade, reduza a velocidade pela metade. É por isso que Apple Silicon com memória unificada (400 a 800 GB/s) dá banho em GPUs discretas obrigadas a usar RAM DDR5 do sistema (~60 GB/s).",
+      eli5_bw: "Quão rápido os dados conseguem se mover entre a memória e o processador, medido em GB/s. A inferência é muito mais limitada por isso do que por poder de cálculo bruto: a GPU passa a maior parte do tempo esperando pesos chegarem.",
+      eli5_unified: "Arquitetura do Apple Silicon onde CPU e GPU compartilham um único pool grande e rápido de memória. Nada de copiar entre RAM e VRAM, e a largura de banda é muito maior que RAM de sistema comum.",
+      eli5_toks: "Tokens por segundo. A métrica padrão de throughput. Velocidade humana de leitura fica em torno de 5 a 10 tok/s; qualquer coisa acima de 40 parece confortável num chat.",
+      eli5_ddr5: "RAM de sistema da geração atual. Rápida para computação geral (~60 GB/s), dolorosamente lenta para inferência de LLM comparada com memória de GPU.",
+
+      r6tag: "§ 1.6 &nbsp;·&nbsp; Parâmetros de amostragem",
+      r6title: "Os padrões que você realmente quer",
+      r6body: "Para a maioria das tarefas de chat: <code>temperature 0.7</code>, <code>top_p 0.9</code>, <code>min_p 0.05</code>, <code>repeat_penalty 1.05</code>. Para código e JSON: derrube a temp para 0,1 a 0,3. Para escrita criativa: suba a temp para 0,9 a 1,1 e confie no min_p em vez de top_k. Evite empilhar top_k + top_p + min_p: escolha um filtro.",
+      eli6_temp: "Controla a aleatoriedade. 0,0 sempre escolhe o token mais provável seguinte (determinístico); 1,0 amostra mais próximo da distribuição de probabilidade original; acima de 1,0 achata a distribuição e fica estranho.",
+      eli6_topp: "Mantém só os tokens mais prováveis cuja soma de probabilidade chega a esse limite. top_p = 0,9 significa 'considere os tokens que juntos cobrem 90 por cento da massa de probabilidade'.",
+      eli6_minp: "Um filtro mais novo, melhor. Descarta qualquer token menos provável que min_p vezes o candidato principal. Adapta-se à confiança do modelo em cada passo. Padrão mais seguro que top_p.",
+      eli6_topk: "Mantém só os k tokens mais prováveis, joga o resto fora. Tosco e meio desatualizado comparado ao min_p.",
+      eli6_greedy: "Temperature = 0. Sempre pega o token mais provável. Totalmente determinístico; melhor para extração e saída JSON rígida.",
+      eli6_rep: "Reduz ligeiramente a probabilidade de tokens que acabaram de aparecer. Evita que o modelo fique em loop. 1,05 a 1,1 é sutil e seguro; valores maiores distorcem o vocabulário.",
+
+      s2title: "Escada de <em>quantização</em>",
+      s2sub: "Os níveis de compressão que você vê nos nomes de arquivos GGUF. Números menores significam menos bits por peso: arquivos menores, inferência mais rápida, mais perda de qualidade. O sufixo (K_S, K_M, K_L) indica quais camadas são quantizadas de forma mais agressiva.",
+      q2_p1: "Quantização substitui floats de 16 bits por inteiros de precisão menor. <strong>Q4</strong> significa aproximadamente 4 bits por peso, <strong>Q6</strong> aproximadamente 6, e assim por diante. A família 'K' (K-quants) usa precisão mista: <em>K_S</em> quantiza tudo uniformemente, <em>K_M</em> mantém tensores importantes em precisão maior, <em>K_L</em> é o mais conservador.",
+      q2_p2: "O ponto ideal prático para a maioria dos modelos é <strong>Q4_K_M</strong>: cerca de 70 por cento de redução no tamanho do arquivo versus FP16 com perda de qualidade tipicamente abaixo de 2 por cento em benchmarks. Abaixo de Q4 degrada rápido; acima de Q6 tem retorno decrescente.",
+      qh1: "Quant", qh2: "Bits/peso", qh3: "Tamanho 7B", qh4: "Veredito", qh5: "Qualidade", qh6: "Quando usar",
+      tier_avoid: "Evite", tier_budget: "Econômico", tier_sweet: "Ideal", tier_quality: "Qualidade", tier_ref: "Referência",
+      qr1: "Só para experimentos de brinquedo. Coerência desaba feio em modelos abaixo de 30B.",
+      qr2: "Só em modelos 30B+ onde o tamanho maior absorve o dano.",
+      qr3: "VRAM apertada em classe 7B. Perda de qualidade perceptível, mas usável.",
+      qr4: "<strong>A escolha padrão.</strong> Melhor relação tamanho/qualidade para praticamente qualquer modelo. Comece aqui.",
+      qr5: "Quando você tem 15 a 20 por cento a mais de VRAM para gastar. Ligeiramente mais afiado em raciocínio.",
+      qr6: "Praticamente indistinguível de FP16 na maioria dos benchmarks. Teto para uso prático.",
+      qr7: "Funcionalmente sem perda. Útil como referência de qualidade ou como base de fine-tuning.",
+      qr8: "Precisão original. Só use se estiver treinando, avaliando, ou com VRAM sobrando.",
+      decSub: "decisão rápida",
+      decTitle: "Qual quant eu devo baixar, afinal?",
+      decIf: "SE", decElif: "SENÃO SE", decElse: "SENÃO",
+      dec1: "você tem <strong>mais VRAM do que o modelo precisa em Q6</strong>, escolha Q6_K. Pronto.",
+      dec2: "o modelo cabe confortavelmente em Q4_K_M com offload total na GPU, <strong>escolha Q4_K_M.</strong>",
+      dec3: "você está num modelo 30B+ e apertado, Q3_K_M é aceitável.",
+      dec4: "desça para um <strong>modelo menor em Q4_K_M</strong> em vez do mesmo modelo em Q2.",
+
+      s3title: "Formatos <em>e containers</em>",
+      s3sub: "O formato do arquivo determina qual runtime você pode usar e, mais sutilmente, o quão bem o modelo roda no seu hardware específico. Para a maioria das pessoas, GGUF é a resposta, mas as alternativas importam em máquinas específicas.",
+      fa_runtime: "Runtime", fa_hw: "Hardware", fa_quant: "Quants", fa_best: "Melhor para",
+      fb1: "Escolha principal", fe1: "GPT-generated unified format",
+      fd1: "Sucessor do GGML. Pacote em arquivo único com metadados embutidos. Roda em CPU, GPU e híbrido via llama.cpp, Ollama, LM Studio, koboldcpp. O formato universal: se for aprender um só, aprenda esse.",
+      fa1_hw: "Qualquer (CPU/GPU/misto)", fa1_best: "Tudo",
+      fb2: "Foco em velocidade", fe2: "ExLlamaV2 · só GPU",
+      fd2: "Quantização de precisão mista voltada para GPUs NVIDIA. Mais rápido que GGUF em cargas de GPU pura, especialmente para inferência em batch. Rode via exllamav2 ou TabbyAPI. Compensa em placas classe 3090/4090/5090.",
+      fa2_hw: "Só GPU NVIDIA", fa2_best: "Throughput máximo em GPU",
+      fb3: "Apple Silicon", fe3: "Apple machine learning",
+      fd3: "Framework ML nativo da Apple. Nos chips série M, versões MLX muitas vezes rodam 15 a 30 por cento mais rápido que builds GGUF equivalentes porque exploram a arquitetura de memória unificada e o Metal Performance Shaders diretamente.",
+      fa3_hw: "Só Apple Silicon", fa3_best: "Macs M1/M2/M3/M4",
+      fb4: "Servidores de inferência", fe4: "Activation-aware weight quant.",
+      fd4: "Quantização de 4 bits para GPU com excelente retenção de qualidade. Preferida por vLLM, TGI e SGLang para serving em produção com batching de requisições. Overkill para uso desktop de um usuário, mas a escolha certa para endpoints internos.",
+      fa4_hw: "GPU NVIDIA", fa4_quant: "Majoritariamente 4 bits", fa4_best: "Serving multi-usuário",
+      fb5: "GPU legado", fe5: "Post-training quantization",
+      fd5: "Esquema de quantização para GPU mais antigo. Amplamente superado por AWQ e EXL2 em deploys novos, mas ainda espalhado pelo Hugging Face. Funciona com transformers + auto-gptq. Serve se for o que estiver disponível.",
+      fa5_hw: "GPU NVIDIA", fa5_best: "Pipelines existentes",
+      fb6: "Original", fe6: "FP16 / BF16 sem quantização",
+      fd6: "Os pesos originais como lançados pelo laboratório. Substituto seguro para checkpoints baseados em pickle. Você só quer isso para treinar, fazer fine-tuning ou converter para outro formato. Grande e lento demais para inferência direta na maioria das mesas.",
+      fa6_hw: "GPU com 2 × params GB", fa6_prec_k: "Precisão", fa6_best: "Treinamento e conversão",
+
+      s4title: "Throughput <em>vs qualidade</em>",
+      s4sub: "Como se sente cada faixa de tokens por segundo na prática, e que hardware você precisa para atingi-la. Os números abaixo são para um modelo classe 7B em Q4_K_M com contexto de 4k. Escale para baixo, aproximadamente linear, para modelos maiores.",
+      ssTitle: "Faixas perceptivas de velocidade",
+      ssSub: "tokens por segundo, como o leitor sente",
+      sb1: "Sofrido", sb1n: "Mais devagar que leitura em voz alta. Só serve para trabalhos em batch.",
+      sb2: "Tolerável", sb2n: "Aproximadamente velocidade humana de leitura. Aceitável para respostas longas.",
+      sb3: "Confortável", sb3n: "Sensação de responsividade. Mínimo para chat interativo.",
+      sb4: "Fluente", sb4n: "Saída mais rápida do que você consegue ler. Ótimo para loops de agente.",
+      sb5: "Instantâneo", sb5n: "Perceptivamente completo. Permite uso de ferramentas em tempo real e UX com streaming.",
+      hw1: "Só CPU", hw1s: "x86 moderno, 32 GB DDR5",
+      hw1p: "7B Q4: <strong>3 a 7 tok/s</strong><br>13B Q4: <strong>1 a 3 tok/s</strong><br><em>Última opção. Evite para uso interativo.</em>",
+      hw2s: "banda de 360 GB/s",
+      hw2p: "7B Q4: <strong>40 a 55 tok/s</strong><br>13B Q4: <strong>20 a 28 tok/s</strong><br><em>Ponto ideal econômico para chat de um usuário.</em>",
+      hw3s: "1008 GB/s, 24 GB de VRAM",
+      hw3p: "7B Q4: <strong>120 a 180 tok/s</strong><br>34B Q4: <strong>35 a 50 tok/s</strong><br><em>Padrão prosumer. Lida com 34B confortavelmente.</em>",
+      hw4s: "memória unificada de 546 GB/s",
+      hw4p: "7B Q4: <strong>70 a 95 tok/s</strong><br>70B Q4: <strong>8 a 12 tok/s</strong><br><em>Pool enorme de VRAM. Carrega modelos 70B de verdade.</em>",
+      hw5s: "memória unificada de 800 GB/s",
+      hw5p: "70B Q4: <strong>12 a 20 tok/s</strong><br>120B Q4: <strong>5 a 8 tok/s</strong><br><em>Opção de mesa para modelos grandes. Lenta, mas viável.</em>",
+      hw6: "Dupla 3090 / 4090", hw6s: "48 GB de VRAM no total",
+      hw6p: "70B Q4: <strong>15 a 25 tok/s</strong><br>34B Q8: <strong>30 a 45 tok/s</strong><br><em>Melhor custo por token para inferência local classe 70B.</em>",
+
+      s5title: "Dicas <em>e truques</em>",
+      s5sub: "As coisas que não estão no README e aparecem no momento em que você tenta usar isso para trabalho de verdade. Conhecimento operacional duramente conquistado, destilado.",
+      tipsIntro: "A maior parte da decepção com LLMs locais vem de <em>expectativas desalinhadas</em>, não de hardware fraco. Estes são os ajustes que fazem um modelo de desktop parecer profissional em vez de brinquedo.",
+      tip1t: "Use flash attention quando disponível",
+      tip1b: "No llama.cpp, passe <code>-fa</code>. Reduz memória do cache KV e acelera o processamento de prompt, especialmente em contextos longos. Está estável o suficiente agora, não há motivo para deixar desligado.",
+      tip2t: "Quantize o cache KV separadamente",
+      tip2b: "Use <code>--cache-type-k q8_0 --cache-type-v q8_0</code> para cortar a memória KV pela metade com perda de qualidade desprezível. Isso sozinho pode liberar 2× o contexto num orçamento apertado de VRAM.",
+      tip3t: "Quants imatrix são melhores que os simples",
+      tip3b: "Procure variantes 'IQ' (IQ3_M, IQ4_XS) ou quants marcados com 'imatrix' no nome do arquivo. Eles usam um dataset de calibração para preservar qualidade nos pesos quantizados, muitas vezes equivalendo a um nível inteiro de bits acima em quants padrão.",
+      tip4t: "Não confie em perplexidade; confie em benchmarks de tarefa",
+      tip4b: "Diferenças de perplexidade entre Q4 e Q6 são minúsculas no papel, mas podem ser a diferença entre JSON funcionando e quebrado. Sempre teste a quant na sua carga real antes de se comprometer.",
+      tip5t: "Case o template de prompt exatamente",
+      tip5b: "Cada modelo instruct tem um template de chat específico (ChatML, Llama-3, Mistral, Gemma). Usar o errado degrada a saída drasticamente, às vezes de forma silenciosa. Confira o cartão do modelo e verifique se seu frontend está aplicando corretamente.",
+      tip6t: "Processamento de prompt não é velocidade de geração",
+      tip6b: "Modelos anunciam tok/s de geração, mas ingerir um prompt de 16k pode levar 30+ segundos antes do primeiro token de saída. Para RAG e contexto longo, o processamento de prompt costuma ser o gargalo real. Meça os dois.",
+      tip7t: "Decodificação especulativa é mágica de verdade",
+      tip7b: "Pareie um modelo 'draft' pequeno com seu modelo principal (p.ex., 1B faz drafts para um 70B). O modelo grande verifica os palpites do draft em paralelo, muitas vezes entregando 1,5 a 3× de speedup com zero perda de qualidade. Suportado no llama.cpp via <code>--model-draft</code>.",
+      tip8t: "Modelos MoE batem acima do peso",
+      tip8b: "Modelos Mixture-of-Experts (Mixtral, Qwen3-MoE, DeepSeek) ativam só uma fração dos parâmetros por token. Um MoE 47B muitas vezes roda em velocidade de 13B enquanto entrega qualidade classe 70B. Olhe o número de 'parâmetros ativos', não o total.",
+      tip9t: "Context shifting salva sua latência",
+      tip9b: "Habilite cache de prompt / context shifting para que system prompts repetidos e turnos recentes não sejam reprocessados. O <code>--prompt-cache</code> do llama.cpp e o cache embutido do Ollama podem transformar um turno de chat de 5 segundos num de 500 ms.",
+      tip10t: "Térmico afoga inferência silenciosamente",
+      tip10b: "Inferência sustentada em GPU empurra placas até o limite de potência por minutos seguidos. Se seus tok/s caem 15 a 20 por cento depois dos primeiros prompts, é throttling térmico, não o software. Melhore o fluxo de ar do gabinete antes de culpar o modelo.",
+      tip11t: "Meça com prompts realistas",
+      tip11b: "O benchmark 'oi, me conta uma piada' é inútil. Meça com um prompt representativo da sua carga real, idealmente um pedaço de RAG no comprimento de contexto que você vai usar mesmo. Números de reviews do YouTube raramente batem com seu caso de uso.",
+      tip12t: "Um modelo pequeno novo bate um grande velho",
+      tip12b: "Avanços em post-training significam que um 8B bem ajustado lançado esse trimestre muitas vezes supera o 34B do ano passado em tarefas práticas. Olhe leaderboards por data, não só por tamanho. A fronteira se move rápido, especialmente para chat e uso de ferramentas.",
+      footerSub: "local/LLM field manual · compilado para praticantes"
+    }
+  };
+
+  // ============ APPLY TRANSLATIONS ============
+  function applyLanguage(lang) {
+    const dict = translations[lang];
+    if (!dict) return;
+
+    document.documentElement.lang = lang === "pt" ? "pt-BR" : "en";
+
+    // Text-only (safe from HTML injection within this controlled dict)
+    document.querySelectorAll("[data-i18n]").forEach(el => {
+      const key = el.getAttribute("data-i18n");
+      if (dict[key] !== undefined) el.textContent = dict[key];
+    });
+
+    // HTML content (for strings with inline <em>, <strong>, <code>, <br>)
+    document.querySelectorAll("[data-i18n-html]").forEach(el => {
+      const key = el.getAttribute("data-i18n-html");
+      if (dict[key] !== undefined) el.innerHTML = dict[key];
+    });
+
+    // Attribute-based (data-label etc.)
+    document.querySelectorAll("[data-i18n-attr]").forEach(el => {
+      const spec = el.getAttribute("data-i18n-attr"); // e.g. "data-label:specLabel"
+      const [attr, key] = spec.split(":");
+      if (dict[key] !== undefined) el.setAttribute(attr, dict[key]);
+    });
+
+    // Sync button state
+    document.querySelectorAll(".lang-btn").forEach(btn => {
+      btn.classList.toggle("active", btn.dataset.lang === lang);
+    });
+
+    try { localStorage.setItem("llm-manual-lang", lang); } catch (e) {}
+  }
+
+  // ============ WIRE UP ============
+  document.querySelectorAll(".lang-btn").forEach(btn => {
+    btn.addEventListener("click", () => applyLanguage(btn.dataset.lang));
+  });
+
+  // Initial language: saved preference, else English
+  let initialLang = "en";
+  try {
+    const saved = localStorage.getItem("llm-manual-lang");
+    if (saved && translations[saved]) {
+      initialLang = saved;
+    }
+  } catch (e) {}
+  applyLanguage(initialLang);
+</script>
+
+</body>
+</html>
