@@ -947,7 +947,7 @@
 
       <!-- RULE 1.1 -->
       <div class="rule">
-        <div class="rule-tag" data-i18n="r1tag">§ 1.1 &nbsp;·&nbsp; VRAM budget</div>
+        <div class="rule-tag" data-i18n-html="r1tag">§ 1.1 &nbsp;·&nbsp; VRAM budget</div>
         <h3 class="rule-title" data-i18n="r1title">Parameters × bytes per weight + overhead</h3>
         <p class="rule-body" data-i18n="r1body">Multiply the parameter count by the quantization's bytes-per-weight, then add roughly 20 to 25 percent for KV cache and activations. At Q4 (~0.5 B/param), a 7B fits in ~5 GB; at Q8, ~9 GB; at FP16, ~16 GB.</p>
         <pre class="rule-formula">
@@ -974,9 +974,9 @@
 
       <!-- RULE 1.2 -->
       <div class="rule">
-        <div class="rule-tag" data-i18n="r2tag">§ 1.2 &nbsp;·&nbsp; Context window cost</div>
+        <div class="rule-tag" data-i18n-html="r2tag">§ 1.2 &nbsp;·&nbsp; Context window cost</div>
         <h3 class="rule-title" data-i18n="r2title">KV cache scales with tokens × layers</h3>
-        <p class="rule-body" data-i18n="r2body">Context isn't free. Each token in the window consumes VRAM roughly equal to <code>2 × layers × hidden_dim × bytes</code>. A 32k context on a 13B model eats 3 to 6 GB on top of the weights. Cut context aggressively if you're close to the edge.</p>
+        <p class="rule-body" data-i18n-html="r2body">Context isn't free. Each token in the window consumes VRAM roughly equal to <code>2 × layers × hidden_dim × bytes</code>. A 32k context on a 13B model eats 3 to 6 GB on top of the weights. Cut context aggressively if you're close to the edge.</p>
         <pre class="rule-formula">
 <span class="comment"># Rough KV cache for 7B-class models</span>
 <span class="keyword">4k</span>   ctx  &#8594;  ~0.5 GB
@@ -1001,7 +1001,7 @@
 
       <!-- RULE 1.3 -->
       <div class="rule">
-        <div class="rule-tag" data-i18n="r3tag">§ 1.3 &nbsp;·&nbsp; Model size vs task</div>
+        <div class="rule-tag" data-i18n-html="r3tag">§ 1.3 &nbsp;·&nbsp; Model size vs task</div>
         <h3 class="rule-title" data-i18n="r3title">Match parameter count to the job</h3>
         <p class="rule-body" data-i18n="r3body">3B models are autocomplete-grade; 7 to 8B handle simple chat and structured extraction; 13 to 14B cross the "feels coherent" line; 30 to 34B is where reasoning starts to hold; 70B and up rivals frontier APIs on most tasks except the hardest math and code.</p>
         <pre class="rule-formula">
@@ -1028,9 +1028,9 @@
 
       <!-- RULE 1.4 -->
       <div class="rule">
-        <div class="rule-tag" data-i18n="r4tag">§ 1.4 &nbsp;·&nbsp; Offload math</div>
+        <div class="rule-tag" data-i18n-html="r4tag">§ 1.4 &nbsp;·&nbsp; Offload math</div>
         <h3 class="rule-title" data-i18n="r4title">Every layer on GPU is 5 to 20× faster</h3>
-        <p class="rule-body" data-i18n="r4body">With llama.cpp, you pick how many layers live on GPU (<code>-ngl</code>). Full offload is always fastest. If even one layer spills to CPU, throughput collapses disproportionately: aim for 100 percent or don't bother. Prefer a smaller quant that fully fits over a larger one that partially offloads.</p>
+        <p class="rule-body" data-i18n-html="r4body">With llama.cpp, you pick how many layers live on GPU (<code>-ngl</code>). Full offload is always fastest. If even one layer spills to CPU, throughput collapses disproportionately: aim for 100 percent or don't bother. Prefer a smaller quant that fully fits over a larger one that partially offloads.</p>
         <pre class="rule-formula">
 <span class="comment"># Priority order when VRAM-limited:</span>
 1. smaller quant (Q4 over Q6)
@@ -1055,7 +1055,7 @@
 
       <!-- RULE 1.5 -->
       <div class="rule">
-        <div class="rule-tag" data-i18n="r5tag">§ 1.5 &nbsp;·&nbsp; Memory bandwidth is king</div>
+        <div class="rule-tag" data-i18n-html="r5tag">§ 1.5 &nbsp;·&nbsp; Memory bandwidth is king</div>
         <h3 class="rule-title" data-i18n="r5title">Inference speed &#8776; bandwidth ÷ model size</h3>
         <p class="rule-body" data-i18n="r5body">A 7B Q4 model (~4 GB) on a 1 TB/s GPU has a theoretical ceiling of ~250 tok/s. Halve the bandwidth, halve the speed. This is why Apple Silicon with unified memory (400 to 800 GB/s) runs laps around discrete GPUs forced to use DDR5 system RAM (~60 GB/s).</p>
         <pre class="rule-formula">
@@ -1082,9 +1082,9 @@ DDR5 (CPU-only)&#8594;   ~60 GB/s
 
       <!-- RULE 1.6 -->
       <div class="rule">
-        <div class="rule-tag" data-i18n="r6tag">§ 1.6 &nbsp;·&nbsp; Sampling parameters</div>
+        <div class="rule-tag" data-i18n-html="r6tag">§ 1.6 &nbsp;·&nbsp; Sampling parameters</div>
         <h3 class="rule-title" data-i18n="r6title">Defaults you actually want</h3>
-        <p class="rule-body" data-i18n="r6body">For most chat tasks: <code>temperature 0.7</code>, <code>top_p 0.9</code>, <code>min_p 0.05</code>, <code>repeat_penalty 1.05</code>. For code and JSON: drop temp to 0.1 to 0.3. For creative writing: push temp to 0.9 to 1.1 and lean on min_p instead of top_k. Avoid stacking top_k + top_p + min_p: pick one filter.</p>
+        <p class="rule-body" data-i18n-html="r6body">For most chat tasks: <code>temperature 0.7</code>, <code>top_p 0.9</code>, <code>min_p 0.05</code>, <code>repeat_penalty 1.05</code>. For code and JSON: drop temp to 0.1 to 0.3. For creative writing: push temp to 0.9 to 1.1 and lean on min_p instead of top_k. Avoid stacking top_k + top_p + min_p: pick one filter.</p>
         <pre class="rule-formula">
 <span class="keyword">chat</span>       temp=0.7  min_p=0.05
 <span class="keyword">code/JSON</span>  temp=0.2  top_p=0.95
